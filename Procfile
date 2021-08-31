@@ -1,1 +1,1 @@
-web: gunicorn fpl_auction_deploy.wsgi
+web: gunicorn fpl_auction.wsgi
