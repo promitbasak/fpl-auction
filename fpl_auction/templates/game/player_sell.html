@@ -1,0 +1,155 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Buy {{player.web_name }} {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block content %}
+
+        <div class="row">
+          <div class="col-md-8 mx-auto">
+            <div class="card">
+
+              <form role="form" method="post" action="">
+              
+                {% csrf_token %} 
+                
+                {% if not player %}
+                  <div class="card-header">
+                    
+                    <h5 class="title">Player is not available</h5>
+  
+                    <h6 class="card-category">
+                          <span class="text-danger">Player does not exist!</span>
+                    </h6>
+                  </div>
+                {% elif not request.user.is_manager %}
+                  <div class="card-header">
+                    
+                    <h5 class="title">You are not a manager</h5>
+  
+                    <h6 class="card-category">
+                          <span class="text-danger">
+                            <a href='{% url "game:create_manager" %}'>Create you manager profile</a> first!</span>
+                    </h6>
+                  </div>
+                {% elif player.bought_by.id != request.user.id %}
+                  <div class="card-header">
+                    
+                    <h5 class="title">{{ player.web_name }} is NOT yours to sell</h5>
+  
+                    <h6 class="card-category text-center">
+                          <span class="text-danger text-center">You do not own this player anymore!</span>
+                    </h6>
+                  </div>
+                {% else %}
+
+                <div class="card-header">
+                  <h5 class="title">Buy {{player.first_name}} {{player.last_name}}</h5>
+
+                  <h6 class="card-category text-left">
+                    {% if success %}
+                        {% if msg %}
+                          <span class="text-success">{{ msg | safe }}</span>
+                        {% else %}
+                        Check details
+                        {% endif %}
+                    {% else %}
+                        {% if msg %}
+                          <span class="text-danger">{{ msg | safe }}</span>
+                        {% else %}
+                        Check details
+                        {% endif %}  
+                    {% endif %}
+                  </h6>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                      <div class="col-md-6 px-md-1">
+                        <div class="form-group">
+                          <label>Player name</label>
+                          <input type="text" value="{{player.first_name}} {{player.second_name}}", 
+                              class="form-control" disabled>
+                        </div>
+                      </div>
+                      <div class="col-md-6 px-md-1">
+                        <div class="form-group">
+                          <label>Team</label>
+                          <input type="text" value="{{player.team.name}}", 
+                              class="form-control" disabled>
+                        </div>
+                      </div>
+
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6 px-md-1">
+                        <div class="form-group">
+                          <label>Position</label>
+                          <input type="text" value="{{player.element_type.position_verbose}}", 
+                              class="form-control" disabled>
+                        </div>
+                      </div>
+                      <div class="col-md-6 px-md-1">
+                        <div class="form-group">
+                          <label>Total Points</label>
+                          <input type="text" value="{{player.total_points}}", 
+                              class="form-control" disabled>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6 px-md-1">
+                        <div class="form-group">
+                          <label>Player Status</label>
+                          <input type="text" value="{{player.status.status_verbose}}", 
+                              class="form-control" disabled>
+                        </div>
+                      </div>
+                      <div class="col-md-6 px-md-1">
+                        <div class="form-group">
+                          <label>Base Bid</label>
+                          <input type="text" value="{{player.base_bid}}", 
+                              class="form-control" disabled>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                </form>
+                <form role="form" method="post" action="" class="mx-auto">
+                {% csrf_token %} 
+
+                <div class="card-body">
+                      <div class="row">
+
+                        <!-- <div class="col-md-12 px-md-1 mx-auto">
+                          <div class="form-group mx-auto">
+                            <label>Your Bid</label>
+                            {{ form.bid }}
+                          </div>
+                        </div> -->
+                      </div>
+
+                </div>
+                <div class="card-footer mx-auto text-center">
+                  <h6 class="card-category mx-auto">
+                    <span class="text-danger">Are you sure you want to sell?</span> 
+                  </h6>
+                  <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Sell</button>
+                </div>
+              {% endif %} 
+              </form>
+
+            </div>
+          </div>
+      </div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

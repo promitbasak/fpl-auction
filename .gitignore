@@ -1,0 +1,7 @@
+fpl_auction/staticfiles/*
+.env
+deploy_venv
+deploy_venv/*
+*.pyc
+staticfiles
+db.sqlite3

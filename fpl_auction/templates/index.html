@@ -1,0 +1,59 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<section id="hero" class="d-flex align-items-center">
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1 aos-init aos-animate" data-aos="fade-up" data-aos-delay="200">
+        <h1>Welcome to FPL Auction</h1>
+        <h2>Join to play fpl auctions with your friends</h2>
+        <div class="d-flex justify-content-center justify-content-lg-start">
+          {% if request.user.is_authenticated %}
+              {% if request.user.is_manager %}
+                <a href="{% url 'game:manager_detail' request.user.manager.id %}"
+                      class="btn-get-started scrollto">Go to your dashboard</a>
+                <a href="{% url 'game:player_list' %}" class="glightbox btn-watch-video">
+                  <i class="bi bi-play-circle"></i><span>Explore Players</span></a>
+              {% else %}
+                <a href="{% url 'game:manager_create' %}"
+                class="btn-get-started scrollto">Create your manager profile</a>
+                <a href="{% url 'game:player_list' %}" class="glightbox btn-watch-video">
+                  <i class="bi bi-play-circle"></i><span>Explore Players</span></a>
+              {% endif %}
+          {% else %}
+                <a href="{% url 'accounts:register' %}"
+                class="btn-get-started scrollto">Sign Up</a>
+                <a href="{% url 'accounts:login' %}" class="glightbox btn-watch-video">
+                  <i class="bi bi-play-circle"></i><span>Log In</span></a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-6 order-1 order-lg-2 hero-img aos-init aos-animate" data-aos="zoom-in" data-aos-delay="200">
+        <img src="assets/img/players.png" class="img-fluid animated" alt="">
+      </div>
+    </div>
+  </div>
+
+</section>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- <script>
+    $(document).ready(function() {
+      // Javascript method's body can be found in assets/js/demos.js
+      demo.initDashboardPageCharts();
+
+    });
+  </script> -->
+
+{% endblock javascripts %}

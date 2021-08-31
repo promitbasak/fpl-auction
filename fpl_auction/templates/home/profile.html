@@ -1,0 +1,183 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Profile {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="title">Edit Profile</h5>
+
+        <h6 class="card-category mx-auto">
+          {% if success %}
+              {% if msg %}
+                <span class="text-success">{{ msg | safe }}</span>
+              {% else %}
+                Add your details
+              {% endif %}
+          {% else %}
+              {% if msg %}
+                <span class="text-danger">{{ msg | safe }}</span>
+              {% else %}
+                Add your details
+              {% endif %}  
+          {% endif %}
+        </h6>
+      </div>
+      <div class="card-body">
+        <form role="form" method="post" action="">
+          {% csrf_token %} 
+          <div class="row">
+            <div class="col-md-3 pr-md-1">
+              <div class="form-group">
+                <label>UserID (disabled)</label>
+                  <input class="form-control" type="text" readonly="" value="{{ user.id }}">
+              </div>
+            </div>
+            <div class="col-md-4 px-md-1">
+              <div class="form-group">
+                <label>Username</label>
+                {{ form.username }}
+              </div>
+            </div>
+            <div class="col-md-5 pl-md-1">
+              <div class="form-group">
+                <label for="exampleInputEmail1">Email address</label>
+                {{ form.email }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5 pr-md-1">
+              <div class="form-group">
+                <label>First Name</label>
+                {{ form.first_name }}
+              </div>
+            </div>
+            <div class="col-md-7 pl-md-1">
+              <div class="form-group">
+                <label>Last Name</label>
+                {{ form.last_name }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5 pr-md-1">
+              <div class="form-group">
+                <label>Phone</label>
+                {{ form.phone_number }}
+              </div>
+            </div>
+            <div class="col-md-7 pl-md-1">
+              <div class="form-group">
+                <label>Facebook Profile Link</label>
+                {{ form.facebook_link }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5 pr-md-1">
+              <div class="form-group">
+                <label>FPL ID</label>
+                {{ form.fpl_id }}
+              </div>
+            </div>
+            <div class="col-md-7 pl-md-1">
+              <div class="form-group">
+                <label>Linkedin Profile Link</label>
+                {{ form.linkedin_link }}
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 pr-md-1">
+              <div class="form-group">
+                <label>About Me</label>
+                {{ form.about_me }}
+              </div>
+            </div>
+          </div>
+          <div class="card-footer text-center">
+            <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ------ Card ----------- -->
+
+
+  <div class="col-md-4">
+    <div class="card card-user">
+      <div class="card-body">
+        <p class="card-text">
+          <div class="author">
+            <div class="block block-one"></div>
+            <div class="block block-two"></div>
+            <div class="block block-three"></div>
+            <div class="block block-four"></div>
+            <a href="javascript:void(0)">
+              <img class="avatar" src="/static/assets/img/anime3.png" alt="...">
+              <h5 class="title">
+                {{ request.user.username }}
+              </h5>
+            </a>
+            <p class="description">
+              {{ request.user.email }}
+            </p>
+          </div>
+        </p>
+        <div class="card-description">
+          {% if user.about_me %}
+          {{ user.about_me }}
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="row mx-auto text-center">
+          <div class="button-container mx-auto text-center">
+            <button href="javascript:void(0)" class="btn btn-icon btn-round btn-facebook">
+              <a href="{% if user.facebook_link %}{{ user.facebook_link }}{% else %}#{% endif %}",
+               style="color: #ffffff;" target="_blank">
+                <i class="fab fa-facebook"></i></a>
+            </button>
+            <button href="javascript:void(0)" class="btn btn-icon btn-round btn-twitter">
+              <a href="{% if user.fpl_id %}https://fantasy.premierleague.com/entry/{{ user.fpl_id }}/event/1{% else %}#{% endif %}",
+                style="color: #ffffff;" target="_blank">
+                <i class="tim-icons icon-trophy"></i></a>
+            </button>
+            <button href="javascript:void(0)" class="btn btn-icon btn-round btn-google">
+              <a href="{% if user.linkedin_link %}{{ user.linkedin_link }}{% else %}#{% endif %}", 
+                  style="color: #ffffff;" target="_blank"> <i class="fab fa-linkedin"></i></a>
+            </button>
+          </div>
+        </div>
+        <div class="row mx-auto text-center">
+          <div class="button-container mx-auto text-center">
+            {% if request.user.is_manager %}
+              <a href="{% url 'game:manager_detail' request.user.manager.id %}" class="btn">
+                Go to my manager profile</a>
+
+            {% else %}
+            <a href="{% url 'game:create_manager' %}" class="btn">
+              Create my manager profile</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

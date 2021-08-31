@@ -1,0 +1,304 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Manager Profile {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% load custom_filters %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+      <div class="card ">
+        <div class="card-header">
+          <h4 class="card-title"> Manager</h4>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tablesorter " id="">
+              <thead class=" text-primary">
+                <tr>
+                  <th class="text-center">
+                    Name
+                  </th>
+                  <th class="text-center">
+                    Team Name
+                  </th>
+                  <th class="text-center">
+                    Total Bid
+                  </th>
+                  <th class="text-center">
+                    Total Points
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center">
+                    {{ manager.name}}
+                  </td>
+                  <td class="text-center">
+                    {{ manager.team_name }}
+                  </td>
+                  <td class="text-center">
+                    {{ manager.total_bid }}
+                  </td>
+                  <td class="text-center">
+                    {{ manager.total_points }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<!-- ------------ Players ------------ -->
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card ">
+      <div class="card-header">
+        <h4 class="card-title"> Current Players</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table tablesorter " id="">
+            <thead class=" text-primary">
+              <tr>
+                <th class="text-center">
+                  Name
+                </th>
+                <th class="text-center">
+                  Team
+                </th>
+                <th class="text-center">
+                  Position
+                </th>
+                <th class="text-center">
+                  Points
+                </th>
+                <th class="text-center">
+                  Current Cost
+                </th>
+                <th class="text-center">
+                  Bid Price
+                </th>
+                <th class="text-center">
+                  Selected By
+                </th>
+                <th class="text-center">
+                  Bought
+                </th>
+                <th class="text-center">
+                  Bought By
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in manager.player_set.all %}
+              <tr>
+                <td class="text-center">
+                  <a href="{% url 'game:player_detail' player.id %}">
+                    {{ player.first_name}} {{ player.second_name }}</a>
+                </td>
+                <td class="text-center">
+                  {{ player.team.name }}
+                </td>
+                <td class="text-center">
+                  {{ player.element_type.position_verbose }}
+                </td>
+                <td class="text-center">
+                  {{ player.total_points }}
+                </td>
+                <td class="text-center">
+                  {{ player.now_cost }}
+                </td>
+                <td class="text-center">
+                  {{ player.base_bid }}
+                </td>
+                <td class="text-center">
+                  {{ player.selected_by_percent }}
+                </td>
+                <td class="text-center">
+                  {{ player.bought }}
+                </td>
+                <td class="text-center">
+                  {% if player.bought_by %}
+                    <a href="{% url 'game:manager_detail' player.bought_by.id %}">
+                      {{ player.bought_by.name }}</a>
+                  {% else %}
+                    {{ player.bought_by.name }}
+                  {% endif %}
+                </td>
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ------------ Gameweek ------------ -->
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card ">
+      <div class="card-header">
+        <h4 class="card-title"> Gameweeks - {{ manager.name }}</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table tablesorter " id="">
+            <thead class=" text-primary">
+              <tr>
+                <th class="text-center">
+                  Gameweek
+                </th>
+                <th class="text-center">
+                  Total Bid
+                </th>
+                <th class="text-center">
+                  GW Points
+                </th>
+                <th class="text-center">
+                  Players
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mgw in manager.managergameweek_set.all %}
+                  <tr>
+                    <td class="text-center">
+                      {{ mgw.gw }}
+                    </td>
+                    <td class="text-center">
+                      {{ mgw.total_bid }}
+                    </td>
+                    <td class="text-center">
+                      {{ mgw.gw_points }}
+                    </td>
+                    <td class="text-center">
+                      
+                    </td>
+                  </tr>
+                {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ------------ Transfer History ------------ -->
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card ">
+      <div class="card-header">
+        <h4 class="card-title"> Transfer History</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table tablesorter " id="">
+            <thead class=" text-primary">
+              <tr>
+                <th class="text-center">
+                  Player Name
+                </th>
+                <th class="text-center">
+                  Team
+                </th>
+                <th class="text-center">
+                  Position
+                </th>
+                <th class="text-center">
+                  From
+                </th>
+                <th class="text-center">
+                  To
+                </th>
+                <th class="text-center">
+                  Transfer Type
+                </th>
+                <th class="text-center">
+                  Cost
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transfer in manager|manager_transfers %}
+              <tr>
+                <td class="text-center">
+                  <a href="{% url 'game:player_detail' transfer.player.id %}">
+                    {{ transfer.player.first_name}} {{ transfer.player.second_name }}</a>
+                </td>
+                <td class="text-center">
+                  {{ transfer.player.team.name }}
+                </td>
+                <td class="text-center">
+                  {{ transfer.player.element_type.position_verbose }}
+                </td>
+                <td class="text-center">
+                  {% if transfer.from_manager %}
+                    <a href="{% url 'game:manager_detail' transfer.from_manager.id %}">
+                      {{ transfer.from_manager.name }}</a>
+                  {% else %}
+                    {{ transfer.from_manager.name }}
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if transfer.to_manager %}
+                    <a href="{% url 'game:manager_detail' transfer.to_manager.id %}">
+                      {{ transfer.to_manager.name }}</a>
+                  {% else %}
+                    {{ transfer.to_manager.name }}
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if transfer.type == 1 %}
+                    Buy
+                  {% elif transfer.type == 2 %}
+                    Sell
+                  {% elif transfer.type == 3 %}
+                    Transfer
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {{ transfer.bid }}
+                </td>
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
