@@ -51,6 +51,12 @@
                         <a href="{% url 'game:manager_detail' request.user.manager.id %}" class="nav-item dropdown-item">
                           Manager Profile</a>
                       </li>
+                    {% else %}
+                      <li class="dropdown-divider"></li>
+                        <li class="nav-link">
+                          <a href="{% url 'game:create_manager'%}" class="nav-item dropdown-item">
+                            Create Manager Profile</a>
+                        </li>
                     {% endif %}
                   <li class="dropdown-divider"></li>
                   <li class="nav-link"><a href="{% url 'accounts:logout' %}" class="nav-item dropdown-item">Log out</a></li>

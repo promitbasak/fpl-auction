@@ -33,8 +33,14 @@ class PlayerList(LoginRequiredMixin, ListView):
         filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
         if "team" in filters:
             queryset = queryset.filter(team__id=filters["team"])
+            params = self.request.GET.copy()
+            params["page"] = 1
+            self.request.GET = params
         if "position" in filters:
             queryset = queryset.filter(element_type__id=filters["position"])
+            params = self.request.GET.copy()
+            params["page"] = 1
+            self.request.GET = params
         if "search" in filters:
             queryset = queryset.filter(web_name__contains=filters["search"])
         if "orderby" in filters and filters["orderby"] in self.ordering_fields:

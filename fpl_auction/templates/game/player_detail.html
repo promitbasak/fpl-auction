@@ -51,7 +51,8 @@
       <div class="row mx-auto text-center">
         <div class="button-container mx-auto text-center">
           {% if not request.user.is_manager %}
-                    
+              <p class="text-danger"> <a href="{% url 'game:create_manager'%}">Create</a>
+                 a manager to profile to trade players</p>
           {% elif player.bought %}
             {% if player.bought_by.id == request.user.manager.id %}
                 <a  class="btn btn-primary" href="{% url 'game:player_sell' player.id %}"> Sell </a>
