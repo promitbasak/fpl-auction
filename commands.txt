@@ -1,0 +1,4 @@
+# game week update
+python manage.py runscript gw_update --script-args <gameweek> <update_managers>
+# manager gw update
+python manage.py runscript gw_manager_update --script-args <gameweek>

@@ -58,6 +58,8 @@ def run(*args):
             total_bid = round(total_bid_agg, 4) if total_bid_agg else 0.0
             mgw = ManagerGameWeek(gw=gw, gw_points=gw_points, total_bid=total_bid, manager=manager)
             mgw.save()
+            manager.total_points = manager.total_points + gw_points
+            manager.save()
 
             
 
