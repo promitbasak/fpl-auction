@@ -4,22 +4,6 @@
       <div class="sidebar-wrapper">
         
         <div class="logo">
-          <!-- <a target="_blank" 
-             href="https://www.creative-tim.com/product/black-dashboard-django" class="simple-text logo-mini">
-            BD
-          </a>
-          <a target="_blank" 
-             href="https://www.creative-tim.com/product/black-dashboard-django" class="simple-text logo-normal">
-            Django Dashboard
-          </a> -->
-          <!-- <a 
-             href="{% url 'accounts:login' %}" class="simple-text logo-mini">
-             Log in
-          </a>
-          <a 
-             href="{% url 'accounts:register' %}" class="simple-text logo-mini">
-             Sign Up
-          </a> -->
         </div>
 
         <ul class="nav">
@@ -39,43 +23,19 @@
           </li>
           <li class="{% if 'icons' in segment %} active {% endif %}">
             <a href="{% url 'game:player_list' %}">
-              <i class="tim-icons icon-atom"></i>
+              <i class="tim-icons icon-user-run"></i>
               <p>Players</p>
             </a>
           </li>
           <li class="{% if 'maps' in segment %} active {% endif %}">
             <a href="{% url 'game:manager_list' %}">
-              <i class="tim-icons icon-pin"></i>
+              <i class="tim-icons icon-single-02"></i>
               <p>Managers</p>
             </a>
           </li>
-          <!-- <li class="{% if 'page-user' in segment %} active {% endif %}">
-            <a href="/page-user.html">
-              <i class="tim-icons icon-single-02"></i>
-              <p>User Profile</p>
-            </a>
-          </li>
-          <li class="{% if 'tables' in segment %} active {% endif %}">
-            <a href="/ui-tables.html">
-              <i class="tim-icons icon-puzzle-10"></i>
-              <p>Table List</p>
-            </a>
-          </li>
-          <li class="{% if 'typography' in segment %} active {% endif %}">
-            <a href="/ui-typography.html">
-              <i class="tim-icons icon-align-center"></i>
-              <p>Typography</p>
-            </a>
-          </li>
-          <li class="{% if 'rtl-support' in segment %} active {% endif %}">
-            <a href="/page-rtl-support.html">
-              <i class="tim-icons icon-world"></i>
-              <p>RTL Support</p>
-            </a>
-          </li> -->
           <li>
             <a href="{% url 'accounts:logout' %}" >
-              <i class="tim-icons icon-user-run"></i>
+              <i class="tim-icons icon-button-power"></i>
               <p>Logout</p>
             </a>
           </li>

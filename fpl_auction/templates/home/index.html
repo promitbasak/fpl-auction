@@ -2,10 +2,11 @@
 
 {% block title %} Dashboard {% endblock %} 
 
-<!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
+
+{% load static %}
 
 <section id="hero" class="d-flex align-items-center">
 
@@ -55,7 +56,8 @@
         </div>
       </div>
       <div class="col-lg-6 order-1 order-lg-2 hero-img aos-init aos-animate" data-aos="zoom-in" data-aos-delay="200">
-        <img src="assets/img/players.png" class="img-fluid animated" alt="">
+        <img src="{% static 'assets/img/players.png' %}" 
+              class="img-fluid animated" alt="banner">
       </div>
     </div>
   </div>
@@ -64,15 +66,7 @@
 
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 
-  <!-- <script>
-    $(document).ready(function() {
-      // Javascript method's body can be found in assets/js/demos.js
-      demo.initDashboardPageCharts();
-
-    });
-  </script> -->
 
 {% endblock javascripts %}

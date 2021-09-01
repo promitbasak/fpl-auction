@@ -7,6 +7,8 @@
 
 {% block content %}
 
+{% load static %}
+
 <div class="row">
   <div class="col-md-8">
     <div class="card">
@@ -124,7 +126,7 @@
             <div class="block block-three"></div>
             <div class="block block-four"></div>
             <a href="javascript:void(0)">
-              <img class="avatar" src="/static/assets/img/anime3.png" alt="...">
+              <img class="avatar" src="{% static 'assets/img/anime3.png' %}" alt="{{ request.user.username }}">
               <h5 class="title">
                 {{ request.user.username }}
               </h5>
@@ -143,20 +145,19 @@
       <div class="card-footer">
         <div class="row mx-auto text-center">
           <div class="button-container mx-auto text-center">
-            <button href="javascript:void(0)" class="btn btn-icon btn-round btn-facebook">
               <a href="{% if user.facebook_link %}{{ user.facebook_link }}{% else %}#{% endif %}",
                style="color: #ffffff;" target="_blank">
-                <i class="fab fa-facebook"></i></a>
-            </button>
-            <button href="javascript:void(0)" class="btn btn-icon btn-round btn-twitter">
+               <button href="javascript:void(0)" class="btn btn-icon btn-round btn-facebook">
+                <i class="fab fa-facebook"></i></button></a>
               <a href="{% if user.fpl_id %}https://fantasy.premierleague.com/entry/{{ user.fpl_id }}/event/1{% else %}#{% endif %}",
                 style="color: #ffffff;" target="_blank">
-                <i class="tim-icons icon-trophy"></i></a>
-            </button>
-            <button href="javascript:void(0)" class="btn btn-icon btn-round btn-google">
+                <button href="javascript:void(0)" class="btn btn-icon btn-round btn-twitter">
+                <i class="tim-icons icon-trophy"></i></button>
+              </a>
               <a href="{% if user.linkedin_link %}{{ user.linkedin_link }}{% else %}#{% endif %}", 
-                  style="color: #ffffff;" target="_blank"> <i class="fab fa-linkedin"></i></a>
-            </button>
+                  style="color: #ffffff;" target="_blank">
+                  <button href="javascript:void(0)" class="btn btn-icon btn-round btn-google">
+                  <i class="fab fa-linkedin"></i></button></a>
           </div>
         </div>
         <div class="row mx-auto text-center">

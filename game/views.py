@@ -38,7 +38,10 @@ class PlayerList(LoginRequiredMixin, ListView):
         if "search" in filters:
             queryset = queryset.filter(web_name__contains=filters["search"])
         if "orderby" in filters and filters["orderby"] in self.ordering_fields:
-            queryset = queryset.order_by(filters["orderby"])
+            if filters["orderby"] in ["total_points", "selected_by_percent"]:
+                queryset = queryset.order_by("-" + filters["orderby"])
+            else:
+                queryset = queryset.order_by(filters["orderby"])
         else:
             queryset = queryset.order_by("web_name")
         return queryset

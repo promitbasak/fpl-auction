@@ -127,6 +127,11 @@ class TransferHistory(models.Model):
     # 1: buy, 2. sell, 3. transfer
     type = models.IntegerField()
 
-
     def __str__(self):
         return f"{self.from_manager.name}_{self.to_manager.name}_{self.type}"
+
+
+class Deadlines(models.Model):
+    start_time = models.DateTimeField()
+    gw = models.IntegerField()
+    finished = models.BooleanField(blank=True, default=False)
