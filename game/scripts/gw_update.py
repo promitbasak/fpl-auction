@@ -38,6 +38,7 @@ def run(*args):
             gw_dict[v] = gw_dict[k]
             del gw_dict[k]
         gw_dict["now_cost"] /= 10
+        gw_dict["now_cost"] = round(gw_dict["now_cost"], 4)
         player = Player.objects.get(fpl_id=player_id)
         gw_dict["gw"], gw_dict["current_bid"] = gw, player.current_bid
         gw_dict["bought_by"], gw_dict["player"] = player.bought_by, player
@@ -49,10 +50,12 @@ def run(*args):
         if count>0:
             raise Exception("Manager GW already exists!")
         for manager in tqdm(Manager.objects.all()):
-            gw_points = (manager.playergameweek_set.filter(gw=gw)
+            gw_points_agg = (manager.playergameweek_set.filter(gw=gw)
                                 .aggregate(Sum("gw_points")).get("gw_points__sum"))
-            total_bid = (manager.playergameweek_set.filter(gw=gw)
+            gw_points = int(gw_points_agg) if gw_points_agg else 0
+            total_bid_agg = (manager.playergameweek_set.filter(gw=gw)
                                 .aggregate(Sum("current_bid")).get("current_bid__sum"))
+            total_bid = round(total_bid_agg, 4) if total_bid_agg else 0.0
             mgw = ManagerGameWeek(gw=gw, gw_points=gw_points, total_bid=total_bid, manager=manager)
             mgw.save()
 

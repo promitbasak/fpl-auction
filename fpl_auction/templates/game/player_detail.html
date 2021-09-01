@@ -3,11 +3,73 @@
 {% block title %} {{ player.web_name }} {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+
+#headshot {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+</style>
+
+{% endblock stylesheets %}
 {% load custom_filters %}
 
 {% block content %}
 
+
+<!-- ----------- Card --------------- -->
+
+<div class="row">
+
+<div class="col-md-8 mx-auto">
+  <div class="card card-user">
+    <div class="card-body">
+      <p class="card-text">
+        <div class="author">
+          <div class="block block-one"></div>
+          <div class="block block-two"></div>
+          <div class="block block-three"></div>
+          <div class="block block-four"></div>
+          <a href="javascript:void(0)">
+            <img class="avatar" id="headshot" alt="{{ player.name }}"
+                src= "https://resources.premierleague.com/premierleague/photos/players/110x140/p{{ player.fpl_code }}.png">
+            <h5 class="title">
+              {{ player.first_name }} {{ player.second_name }}
+            </h5>
+          </a>
+          <p class="description">
+            {{ player.element_type.position_verbose }}, {{ player.team.name }}
+          </p>
+        </div>
+      </p>
+      <div class="card-description">
+        
+      </div>
+    </div>
+      <div class="row mx-auto text-center">
+        <div class="button-container mx-auto text-center">
+          {% if not request.user.is_manager %}
+                    
+          {% elif player.bought %}
+            {% if player.bought_by.id == request.user.manager.id %}
+                <a  class="btn btn-primary" href="{% url 'game:player_sell' player.id %}"> Sell </a>
+            {% else %}
+              <!-- <a href="% url 'game:player_transfer' player.id %"> Transfer </a> -->
+            {% endif %}
+          {% else %}
+              <a href="{% url 'game:player_buy' player.id %}" class="btn btn-primary"> Buy </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- -------- details --------- -->
 <div class="row">
     <div class="col-md-12">
       <div class="card ">
@@ -46,9 +108,6 @@
                   <th class="text-center">
                     Bought By
                   </th>
-                  <th class="text-center">
-                    Action
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -84,19 +143,6 @@
                     {% else %}
                       {{ player.bought_by.name }}
                     {% endif %}
-                  </td>
-                  <td class="text-center">
-                  {% if not request.user.is_manager %}
-                    
-                  {% elif player.bought %}
-                    {% if player.bought_by.id == request.user.manager.id %}
-                        <a  class="btn btn-primary" href="{% url 'game:player_sell' player.id %}"> Sell </a>
-                    {% else %}
-                      <!-- <a href="% url 'game:player_transfer' player.id %"> Transfer </a> -->
-                    {% endif %}
-                  {% else %}
-                      <a href="{% url 'game:player_buy' player.id %}" class="btn btn-primary"> Buy </a>
-                  {% endif %}
                   </td>
                 </tr>
 

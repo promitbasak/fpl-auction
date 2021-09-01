@@ -12,11 +12,16 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import dotenv
 import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 CORE_DIR = BASE_DIR.joinpath("fpl_auction")     # for templates
+
+dotenv_file = os.path.join(BASE_DIR, ".env")
+if os.path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -92,6 +97,14 @@ WSGI_APPLICATION = 'fpl_auction.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv("DB_NAME", None),
+        'USER': os.getenv("DB_USER", None),
+        'PASSWORD': os.getenv("DB_PASSWORD", None),
+        'HOST': os.getenv("DB_HOST", None),
+        'PORT': os.getenv("DB_PORT", None),
+    },
+    'old': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }

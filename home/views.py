@@ -19,6 +19,11 @@ class IndexView(View):
         return render(request, "home/index.html")
 
 
+class CreditView(View):
+    def get(self, request):
+        return render(request, "home/credits.html")
+
+
 class ProfileView(LoginRequiredMixin, View):
 
     allowed_fields = ["id", "username", "first_name", "last_name", "email", "phone_number",

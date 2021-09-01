@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
-from .models import Player, Manager, TransferHistory
+from .models import Player, Manager, TransferHistory, Team, PlayerType
 from .forms import ManagerForm, PlayerBuyForm
 
 User = get_user_model()
@@ -23,11 +23,43 @@ class ProfileView(LoginRequiredMixin, View):
 
 class PlayerList(LoginRequiredMixin, ListView):
     model = Player
+    filterset_fields = ["team", "position", "search", "orderby"]
+    ordering_fields = ["web_name", "total_points", "selected_by_percent", "now_cost"]
+    ordering_field_names = ["Name", "Points", "Selected by", "Price"]
     paginate_by = 60
 
     def get_queryset(self):
-        return super().get_queryset().filter(~Q(status__status="n"))
+        queryset = super().get_queryset().filter(~Q(status__status="n"))
+        filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
+        if "team" in filters:
+            queryset = queryset.filter(team__id=filters["team"])
+        if "position" in filters:
+            queryset = queryset.filter(element_type__id=filters["position"])
+        if "search" in filters:
+            queryset = queryset.filter(web_name__contains=filters["search"])
+        if "orderby" in filters and filters["orderby"] in self.ordering_fields:
+            queryset = queryset.order_by(filters["orderby"])
+        else:
+            queryset = queryset.order_by("web_name")
+        return queryset
+    
 
+    def get_context_data(self, **kwargs):
+        filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
+        context = super().get_context_data(**kwargs)
+        context["teams"] = dict(Team.objects.all().values_list("id", "name"))
+        context["positions"] = dict(PlayerType.objects.all().values_list("id", "position_verbose"))
+        context["sorting_fields"] = dict(zip(self.ordering_fields, self.ordering_field_names))
+        filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
+        context["current_team"] = int(self.request.GET.get("team")) if "team" in filters else None
+        context["current_position"] = int(self.request.GET.get("position")) if "position" in filters else None
+        context["current_search"] = self.request.GET.get("search") if "search" in filters else None
+        if "orderby" in filters and filters["orderby"] in self.ordering_fields:
+            context["current_orderby"] = self.request.GET.get("orderby")
+        else:
+            context["current_orderby"] = "web_name"
+        return context
+    
     def get_template_names(self):
         return ["game/players.html"]
     
@@ -41,6 +73,9 @@ class PlayerDetail(LoginRequiredMixin, DetailView):
 class ManagerList(LoginRequiredMixin, ListView):
     model = Manager
     paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().order_by("-total_points")
 
     def get_template_names(self):
         return ["game/managers.html"]
@@ -142,7 +177,7 @@ class PlayerBuyView(LoginRequiredMixin, View):
                 success = True
                 trans_hist = TransferHistory(player=player, to_manager=manager, bid=bid_value, type=1)
                 trans_hist.save()
-                manager.total_bid += bid_value
+                manager.total_bid = round(manager.total_bid + bid_value, 4)
                 manager.save()
                 return render(request, 
                       "game/player_buy.html", 
@@ -193,7 +228,7 @@ class PlayerSellView(LoginRequiredMixin, View):
                 success = True
                 trans_hist = TransferHistory(player=player, from_manager=manager, bid=prev_bid, type=2)
                 trans_hist.save()
-                manager.total_bid -= prev_bid
+                manager.total_bid = round(manager.total_bid - prev_bid, 4)
                 manager.save()
                 return render(request, 
                       "game/player_sell.html", 

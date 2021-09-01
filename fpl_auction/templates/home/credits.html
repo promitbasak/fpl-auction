@@ -1,0 +1,98 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} {{ player.web_name }} {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+{% load custom_filters %}
+
+{% block content %}
+
+
+<div class="row">
+    <div class="col-md-12">
+      <div class="card ">
+        <div class="card-header">
+          <h4 class="card-title"> Credits </h4>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tablesorter " id="">
+              <thead class=" text-primary">
+                <tr>
+                  <th class="text-center">
+                    
+                  </th>
+                  <th class="text-center">
+                    
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th class="text-center text-primary">
+                    Developer
+                  </th>
+                  <td class="text-center">
+                    <a target="_blank" href="https://github/promitbasak">Promit Basak</a>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-center text-primary">
+                    UI
+                  </th>
+                  <td class="text-center">
+                    <a target="_blank" href="https://www.creative-tim.com/product/black-dashboard-django">
+                      Black Dashboard</a>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-center text-primary">
+                    Frontend
+                  </th>
+                  <td class="text-center">
+                    Bootstrap, Javascript, DTL
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-center text-primary">
+                    Backend
+                  </th>
+                  <td class="text-center">
+                    Django, Python 3.9
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-center text-primary">
+                    Deployment
+                  </th>
+                  <td class="text-center">
+                    Heroku
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-center text-primary">
+                    Utilities
+                  </th>
+                  <td class="text-center">
+                    Gunicorn, WhiteNoise
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
