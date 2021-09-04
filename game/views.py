@@ -51,7 +51,7 @@ class PlayerList(LoginRequiredMixin, ListView):
     paginate_by = 30
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(~Q(status__status="n"))
+        queryset = super().get_queryset().all()
         filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
         if "team" in filters:
             queryset = queryset.filter(team__id=filters["team"])
