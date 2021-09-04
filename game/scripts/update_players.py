@@ -30,12 +30,12 @@ def run():
 
     # create players
     fields = ["fpl_code", "fpl_id", "element_type", "first_name", "second_name", "web_name", "photo",
-            "now_cost", "minutes", "team", "status", "total_points", "goals_scored", "assists", 
+            "now_cost", "minutes", "team", "status", "goals_scored", "assists", 
             "clean_sheets", "own_goals", "penalties_saved", "penalties_missed", "yellow_cards", 
             "red_cards", "saves", "bonus", "form", "selected_by_percent"]
 
     fpl_fields = ["code", "id", "element_type", "first_name", "second_name", "web_name", "photo",
-                "now_cost", "minutes", "team", "status", "total_points", "goals_scored", "assists", 
+                "now_cost", "minutes", "team", "status", "goals_scored", "assists", 
                 "clean_sheets", "own_goals", "penalties_saved", "penalties_missed", "yellow_cards", 
                 "red_cards", "saves", "bonus", "form", "selected_by_percent"]
 
@@ -54,6 +54,7 @@ def run():
         if player_counts:
             Player.objects.filter(fpl_id=player_dict["fpl_id"]).update(**player_dict)
         else:
+            player_dict["total_points"] = 0
             player_dict["base_cost"] = round(player_dict["now_cost"]*2)/2
             player_dict["bought"] = False
             player = Player.objects.create(**player_dict)
