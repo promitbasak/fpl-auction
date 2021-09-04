@@ -32,7 +32,7 @@ def run():
     for pos,count in tqdm([("GKP", 2), ("DEF", 5), ("MID", 5), ("FWD", 3)]):
         i = 0
         for manager in Manager.objects.all():
-            players = Player.objects.filter(element_type__position=pos).order_by("-total_points", "fpl_id")[i:i+count]
+            players = Player.objects.filter(element_type__position=pos).order_by("-selected_by_percent", "fpl_id")[i:i+count]
             for player in players:
                 bid_value = player.base_bid
                 success, msg, _ = player_buy_post_validation(manager, player, bid_value)
