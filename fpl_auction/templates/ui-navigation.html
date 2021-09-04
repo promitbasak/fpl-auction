@@ -1,8 +1,6 @@
 <!-- Static assets -->
 {% load static %}
 
-{% load custom_filters %}
-
       <!-- Navbar -->
       <nav class="navbar navbar-expand-lg navbar-absolute navbar-transparent">
         <div class="container-fluid">
@@ -14,7 +12,7 @@
                 <span class="navbar-toggler-bar bar3"></span>
               </button>
             </div>
-            <a class="navbar-brand" href="{% url 'home:index' %}">FPL Auction</a>
+            <a class="navbar-brand" href="javascript:void(0)">Dashboard</a>
           </div>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-bar navbar-kebab"></span>
@@ -25,17 +23,11 @@
 
             {% if user.is_authenticated %}
             <ul class="navbar-nav ml-auto">
-              <li class="nav-item">
-                <a href="{% url 'home:rules' %}" class="nav-link">
-                  <div class="photo">
-                    <i class="tim-icons icon-pencil"></i>
-                  </div>
-                  <p class="d-lg-none">
-                    Rules
-                  </p>
-                </a>
+              <li class="search-bar input-group">
+                <button class="btn btn-link" id="search-button" data-toggle="modal" data-target="#searchModal"><i class="tim-icons icon-zoom-split" ></i>
+                  <span class="d-lg-none d-md-block">Search</span>
+                </button>
               </li>
-              {% if request.user.is_manager %}
               <li class="dropdown nav-item">
                 <a href="javascript:void(0)" class="dropdown-toggle nav-link" data-toggle="dropdown">
                   <div class="notification d-none d-lg-block d-xl-block"></div>
@@ -45,19 +37,13 @@
                   </p>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right dropdown-navbar">
-                  {% if check_unstable_team %}
-                  <li class="nav-link">
-                    <a href="{% url 'game:manage_team' %}" class="nav-item dropdown-item">
-                      Your team is unstable!</a></li>
-                  {% endif %}
-                  {% if check_incoming_offers %}
-                  <li class="nav-link">
-                    <a href="{% url 'game:offer_list' %}" class="nav-item dropdown-item">
-                      You have incoming offers!</a></li>
-                  {% endif %}
+                  <li class="nav-link"><a href="#" class="nav-item dropdown-item">Mike John responded to your email</a></li>
+                  <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">You have 5 more tasks</a></li>
+                  <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">Your friend Michael is in town</a></li>
+                  <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">Another notification</a></li>
+                  <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">Another one</a></li>
                 </ul>
               </li>
-              {% endif %}
               <li class="dropdown nav-item">
                 <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
                   <div class="photo">
@@ -65,26 +51,13 @@
                   </div>
                   <b class="caret d-none d-lg-block d-xl-block"></b>
                   <p class="d-lg-none">
-                    Account
+                    Log out
                   </p>
                 </a>
                 <ul class="dropdown-menu dropdown-navbar">
-                  <li class="nav-link"><a href="{% url 'home:profile' %}" class="nav-item dropdown-item">Profile</a></li>
-                  {% if request.user.manager %}
-                      <li class="dropdown-divider"></li>
-                      <li class="nav-link">
-                        <a href="{% url 'game:manager_detail' request.user.manager.id %}" class="nav-item dropdown-item">
-                          Manager Profile</a>
-                      </li>
-                    {% else %}
-                      <li class="dropdown-divider"></li>
-                        <li class="nav-link">
-                          <a href="{% url 'game:create_manager'%}" class="nav-item dropdown-item">
-                            Create Manager Profile</a>
-                        </li>
-                    {% endif %}
+                  <li class="nav-link"><a href="/page-user.html" class="nav-item dropdown-item">Profile</a></li>
                   <li class="dropdown-divider"></li>
-                  <li class="nav-link"><a href="{% url 'accounts:logout' %}" class="nav-item dropdown-item">Log out</a></li>
+                  <li class="nav-link"><a href="{% url 'logout' %}" class="nav-item dropdown-item">Log out</a></li>
                 </ul>
               </li>
               <li class="separator d-lg-none"></li>

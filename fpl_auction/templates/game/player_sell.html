@@ -11,61 +11,26 @@
         <div class="row">
           <div class="col-md-8 mx-auto">
             <div class="card">
-
               <form role="form" method="post" action="">
-              
                 {% csrf_token %} 
-                
-                {% if not player %}
-                  <div class="card-header">
-                    
-                    <h5 class="title">Player is not available</h5>
-  
-                    <h6 class="card-category">
-                          <span class="text-danger">Player does not exist!</span>
-                    </h6>
-                  </div>
-                {% elif not request.user.is_manager %}
-                  <div class="card-header">
-                    
-                    <h5 class="title">You are not a manager</h5>
-  
-                    <h6 class="card-category">
-                          <span class="text-danger">
-                            <a href='{% url "game:create_manager" %}'>Create you manager profile</a> first!</span>
-                    </h6>
-                  </div>
-                {% elif player.bought_by.id != request.user.id %}
-                  <div class="card-header">
-                    
-                    <h5 class="title">{{ player.web_name }} is NOT yours to sell</h5>
-  
-                    <h6 class="card-category text-center">
-                          <span class="text-danger text-center">You do not own this player anymore!</span>
-                    </h6>
-                  </div>
-                {% else %}
 
                 <div class="card-header">
-                  <h5 class="title">Buy {{player.first_name}} {{player.last_name}}</h5>
+                  <h5 class="title">Sell {{player.first_name}} {{player.last_name}}</h5>
 
                   <h6 class="card-category text-left">
-                    {% if success %}
-                        {% if msg %}
+                    {% if msg %}
+                        {% if success %}
                           <span class="text-success">{{ msg | safe }}</span>
                         {% else %}
-                        Check details
+                          <span class="text-danger">{{ msg | safe }}</span>
                         {% endif %}
                     {% else %}
-                        {% if msg %}
-                          <span class="text-danger">{{ msg | safe }}</span>
-                        {% else %}
-                        Check details
-                        {% endif %}  
+                      Check details
                     {% endif %}
                   </h6>
                 </div>
 
+                {% if player %}
                 <div class="card-body">
 
                     <div class="row">
@@ -119,30 +84,34 @@
                       </div>
                     </div>
                 </div>
+                {% endif %}
+
                 </form>
+
+                {% if form %}
                 <form role="form" method="post" action="" class="mx-auto">
                 {% csrf_token %} 
 
                 <div class="card-body">
-                      <div class="row">
-
-                        <!-- <div class="col-md-12 px-md-1 mx-auto">
-                          <div class="form-group mx-auto">
-                            <label>Your Bid</label>
-                            {{ form.bid }}
-                          </div>
-                        </div> -->
-                      </div>
-
+                      <div class="row"></div>
                 </div>
                 <div class="card-footer mx-auto text-center">
                   <h6 class="card-category mx-auto">
                     <span class="text-danger">Are you sure you want to sell?</span> 
                   </h6>
-                  <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Sell</button>
+
+                  {% if warning %}
+                    <h6 class="card-category mx-auto">
+                      <span class="text-danger">Note: {{ warning | safe }}</span> 
+                    </h6>
+                  {% endif %}
+
+                  <button type="submit" name="Create" 
+                  class="btn btn-fill btn-primary text-center">Sell</button>
                 </div>
-              {% endif %} 
               </form>
+
+              {% endif %} 
 
             </div>
           </div>

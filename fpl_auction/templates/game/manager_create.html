@@ -14,31 +14,24 @@
               <form role="form" method="post" action="" class="mx-auto">
               
                 {% csrf_token %} 
-                
-                {% if is_exists %}
-                  <div class="card-header">
-                    <h5 class="title">Create Manager Profile</h5>
-  
-                    <h6 class="card-category">
-                          <span class="text-danger">You have already created your manager profile!</span>
-                    </h6>
-                  </div>
-                {% else %}
 
                 <div class="card-header mx-auto">
                   <h5 class="title">Create Manager Profile</h5>
 
                   <h6 class="card-category mx-auto">
                       {% if msg %}
-                        <span class="text-danger">{{ msg | safe }}</span>
+                        {% if success %}
+                        <span class="text-success text-center">{{ msg | safe }}</span>
+                        {% else %}
+                        <span class="text-danger text-center">{{ msg | safe }}</span>
+                        {% endif %}
                       {% else %}
                         Add your details
                       {% endif %}  
                   </h6>
                 </div>
-
+                {% if form %}
                 <div class="card-body">
-
                     <div class="row">
 
                       <div class="col-md-12 px-md-1">

@@ -1,3 +1,4 @@
+from game.models import Manager
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core import validators
@@ -56,3 +57,37 @@ class ProfileForm(forms.ModelForm):
         if linkedin_link and not linkedin_link.startswith("http"):
             linkedin_link = "https://" + linkedin_link
         return linkedin_link
+
+
+
+class ManagerEditForm(forms.ModelForm):
+    class Meta:
+        model = Manager
+        fields = ["name", "team_name"]
+        widgets = {
+            "name": forms.TextInput(attrs={'placeholder': 'Manager Name', 
+                                        "class": "form-control"}),
+            "team_name": forms.TextInput(attrs={'placeholder': 'Team Name',
+                                                 "class": "form-control"}),
+        }
+    
+    def clean_name(self):
+        name = self.cleaned_data["name"]
+        if len(name) < 2:
+            raise ValidationError("Name should be at least 2 characters")
+        elif len(name) > 19:
+            raise ValidationError("Name should be less than 20 characters")
+        if Manager.objects.exclude(pk=self.instance.pk).filter(name=name).exists():
+            raise ValidationError(f"Name already exists!")
+        return name
+
+    def clean_team_name(self):
+        team_name = self.cleaned_data["team_name"]
+        if len(team_name) < 2:
+            raise ValidationError("Team name should be at least 2 characters")
+        elif len(team_name) > 49:
+            raise ValidationError("Team name should be less than 50 characters")
+        if Manager.objects.exclude(pk=self.instance.pk).filter(team_name=team_name).exists():
+            raise ValidationError(f"Team name already exists!")
+        return team_name
+    

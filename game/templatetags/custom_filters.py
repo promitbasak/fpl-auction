@@ -1,5 +1,7 @@
 from django import template
 
+from game.validators import check_incoming_offers, check_unstable_squad
+
 register = template.Library()
 
 
@@ -10,13 +12,13 @@ def get_item(dictionary, key):
 
 @register.filter
 def manager_transfers(manager):
-    return manager.to_transfer.all().union(manager.from_transfer.all())
+    return manager.to_transfer.all().union(manager.from_transfer.all()).order_by("-time")
 
 
 @register.filter
 def subtract(value, arg):
     return value - arg
-
+    
 
 @register.simple_tag(takes_context=True)
 def param_replace(context, **kwargs):
@@ -72,3 +74,23 @@ def param_delete(context, param):
     if param in d:
         del d[param]
     return d.urlencode()
+
+@register.simple_tag(takes_context=True)
+def player_from_gameweek(context, **kwargs):
+    gw = int(kwargs.get("gw"))
+    player = kwargs.get("player")
+    try:
+        return player.playergameweek_set.get(gw=gw).gw_points 
+    except:
+        return None
+
+
+# @register.simple_tag(takes_context=True)
+# def is_unstable_squad(context, param):
+#     virdict = check_unstable_squad(context['request'].user.manager)[0]
+#     return virdict  
+
+# @register.simple_tag(takes_context=True)
+# def is_incoming_offers(context, param):
+#     virdict = check_incoming_offers(context['request'].user.manager)[0]
+#     return virdict 

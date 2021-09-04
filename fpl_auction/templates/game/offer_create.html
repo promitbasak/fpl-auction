@@ -25,7 +25,7 @@
                 {% csrf_token %} 
 
                 <div class="card-header">
-                  <h5 class="title">Buy {{player.first_name}} {{player.last_name}}</h5>
+                  <h5 class="title">Create Offer - {{player.first_name}} {{player.last_name}}</h5>
 
                   <h6 class="card-category text-left">
                     {% if msg %}
@@ -89,7 +89,7 @@
                       <div class="col-md-6 px-md-1">
                         <div class="form-group">
                           <label>Base Bid</label>
-                          <input type="text" value="{{ player.base_bid }}", 
+                          <input type="text" value="{{player.base_bid}}", 
                               class="form-control" disabled>
                         </div>
                       </div>
@@ -106,7 +106,7 @@
 
                         <div class="col-md-12 px-md-1 mx-auto">
                           <div class="form-group mx-auto">
-                            <label>Your Bid</label>
+                            <label>Your offered bid to buy</label>
                             {{ form.bid }}
                           </div>
                         </div>
@@ -114,7 +114,7 @@
 
                 </div>
                 <div class="card-footer mx-auto text-center">
-                  <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Buy</button>
+                  <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Offer</button>
                 </div>
               </form>
               {% endif %} 

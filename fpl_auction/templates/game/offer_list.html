@@ -1,0 +1,182 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Managers {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+  .page-link {
+    border: none;
+  }
+  #custompager {
+    display: inline-block;
+    text-align: right;
+  }
+  #custompager li {
+    display: inline-block;
+  }
+</style>
+
+{% endblock stylesheets %}
+{% load custom_filters %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+      <div class="card ">
+        <div class="card-header">
+          <h4 class="card-title"> Offers Received</h4>
+          <h5 class="card-category text-left">
+            {% if in_msg %}
+              {% if in_success %}
+                <span class="text-success">{{ in_msg | safe }}</span>
+              {% else %}
+                <span class="text-danger">{{ in_msg | safe }}</span>
+              {% endif %}
+          {% else %}
+              Check incoming offers
+            {% endif %}
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tablesorter">
+              <thead class=" text-primary">
+                <tr>
+                  <th class="text-center">
+                    Player
+                  </th>
+                  <th class="text-center">
+                    From
+                  </th>
+                  <th class="text-center">
+                    Bid Price
+                  </th>
+                  <th class="text-center">
+                    Accept
+                  </th>
+                  <th class="text-center">
+                    Discard
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for offer in received %}
+                <tr>
+                  <td class="text-center">
+                    <a href="{% url 'game:player_detail' offer.player.id %}">
+                      {{ offer.player.first_name }} {{ offer.player.second_name }}</a>
+                  </td>
+                  <td class="text-center">
+                    <a href="{% url 'game:manager_detail' offer.from_manager.id %}">
+                      {{ offer.from_manager.name }}</a>
+                  </td>
+                  <td class="text-center">
+                    {{ offer.bid }}
+                  </td>
+                  <td class="text-center">
+                    <form action="accept/" method="post">
+                      {% csrf_token %} 
+                      <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                      <button class="btn btn-fill btn-success" type="submit" value="Accept">Accept</button>
+                    </form>
+                  </td>
+                  <td class="text-center">
+                    <form action="discard/" method="post">
+                      {% csrf_token %} 
+                      <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                      <button class="btn btn-fill btn-danger" type="submit" value="Discard">Discard</button>
+                    </form>
+                  </td>
+                </tr>
+
+                {% endfor %}
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card ">
+      <div class="card-header">
+        <h4 class="card-title"> Offers Sent</h4>
+        <h5 class="card-category text-left">
+          {% if out_msg %}
+              {% if out_success %}
+                <span class="text-success">{{ out_msg | safe }}</span>
+              {% else %}
+                <span class="text-danger">{{ out_msg | safe }}</span>
+              {% endif %}
+          {% else %}
+            Check outgoing offers
+          {% endif %}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table tablesorter">
+            <thead class=" text-primary">
+              <tr>
+                <th class="text-center">
+                  Player
+                </th>
+                <th class="text-center">
+                  To
+                </th>
+                <th class="text-center">
+                  Bid Price
+                </th>
+                <th class="text-center">
+                  Discard
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for offer in sent %}
+              <tr>
+                <td class="text-center">
+                  <a href="{% url 'game:player_detail' offer.player.id %}">
+                    {{ offer.player.first_name }} {{ offer.player.second_name }}</a>
+                </td>
+                <td class="text-center">
+                  <a href="{% url 'game:manager_detail' offer.to_manager.id %}">
+                    {{ offer.to_manager.name }}</a>
+                </td>
+                <td class="text-center">
+                  {{ offer.bid }}
+                </td>
+                <td class="text-center">
+                  <form role="form" action="discard/" method="post">
+                    {% csrf_token %} 
+                    <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                    <button class="btn btn-fill btn-danger text-center" type="submit">
+                      Discard</button>
+                  </form>
+                </td>
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,7 +1,7 @@
 import requests, json
 from tqdm import tqdm
 
-from game.models import PlayerType, PlayerStatus, Player, Team
+from game.models import PlayerType, PlayerStatus, Player, Team, Parameters, Deadlines, Manager
 
 def run():
     status_map = {
@@ -13,13 +13,31 @@ def run():
         "i": "injured"
     }
 
+    if Player.objects.count() > 0:
+        raise Exception("Player not empty")
+    
+    if Manager.objects.count() > 0:
+        raise Exception("Manager not empty")
+
+    confirm = input(f"Data will be initialized. Enter y to continue: ")
+    if not confirm=="y":
+        print("Operation aborted.")
+        return None
+
     response = requests.get("https://fantasy.premierleague.com/api/bootstrap-static/")
     raw = json.loads(response.text)
 
     teams_raw = raw["teams"]
     players_raw = raw["elements"]
     types_raw = raw["element_types"]
+    events_raw = raw["events"]
 
+
+    # Create deadlines
+    for event in events_raw:
+        gw = event["id"]
+        start_time = event["deadline_time"]
+        Deadlines.objects.create(gw=gw, start_time=start_time)
 
     # Create types
     types = [(t["id"], t["singular_name_short"], t["singular_name"],
@@ -67,3 +85,4 @@ def run():
         player.save()
 
 
+    Parameters.objects.create(current_gameweek=1)

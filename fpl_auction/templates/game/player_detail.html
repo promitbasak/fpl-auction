@@ -14,6 +14,8 @@
 </style>
 
 {% endblock stylesheets %}
+
+{% load humanize %}
 {% load custom_filters %}
 
 {% block content %}
@@ -55,12 +57,12 @@
                  a manager to profile to trade players</p>
           {% elif player.bought %}
             {% if player.bought_by.id == request.user.manager.id %}
-                <a  class="btn btn-primary" href="{% url 'game:player_sell' player.id %}"> Sell </a>
+                <a  class="btn btn-danger" href="{% url 'game:player_sell' player.id %}"> Sell </a>
             {% else %}
-              <!-- <a href="% url 'game:player_transfer' player.id %"> Transfer </a> -->
+              <a class="btn btn-primary" href="{% url 'game:player_offer' player.id %}"> Offer </a>
             {% endif %}
           {% else %}
-              <a href="{% url 'game:player_buy' player.id %}" class="btn btn-primary"> Buy </a>
+              <a class="btn btn-success" href="{% url 'game:player_buy' player.id %}"> Buy </a>
           {% endif %}
         </div>
       </div>
@@ -95,7 +97,7 @@
                     Points
                   </th>
                   <th class="text-center">
-                    Current Cost
+                    FPL Cost
                   </th>
                   <th class="text-center">
                     Bid Price
@@ -129,7 +131,11 @@
                     {{ player.now_cost }}
                   </td>
                   <td class="text-center">
+                    {% if player.current_bid %}
+                    {{ player.current_bid }}
+                    {% elif player.base_bid %}
                     {{ player.base_bid }}
+                    {% endif %}
                   </td>
                   <td class="text-center">
                     {{ player.selected_by_percent }}
@@ -207,7 +213,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for pgw in player.playergameweek_set.all %}
+              {% for pgw in player.playergameweek_set.all|dictsort:"gw" %}
                   <tr>
                     <td class="text-center">
                       {{ pgw.gw }}
@@ -292,10 +298,13 @@
                 <th class="text-center">
                   Cost
                 </th>
+                <th class="text-center">
+                  Time
+                </th>
               </tr>
             </thead>
             <tbody>
-              {% for transfer in player.transferhistory_set.all %}
+              {% for transfer in player.transferhistory_set.all|dictsortreversed:"time" %}
               <tr>
                 <td class="text-center">
                   <a href="{% url 'game:player_detail' transfer.player.id %}">
@@ -334,6 +343,9 @@
                 </td>
                 <td class="text-center">
                   {{ transfer.bid }}
+                </td>
+                <td class="text-center">
+                  {{ transfer.time|naturalday|title }}
                 </td>
               </tr>
 

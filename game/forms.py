@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core import validators
 
-from .models import Manager, Player
+from .models import Manager, ManagerGameWeek
 
 class ManagerForm(forms.Form):
     name = forms.CharField(
@@ -13,8 +13,8 @@ class ManagerForm(forms.Form):
             }
         ),
         validators=[
-            validators.MinLengthValidator(2, "Your name should be at least 1 characters"),
-            validators.MaxLengthValidator(49, "Your name should be less than 50 characters")
+            validators.MinLengthValidator(2, "Your name should be at least 2 characters"),
+            validators.MaxLengthValidator(19, "Your name should be less than 20 characters")
         ]
     )
     team_name = forms.CharField(
@@ -25,7 +25,7 @@ class ManagerForm(forms.Form):
             }
         ),
         validators=[
-            validators.MinLengthValidator(2, "Team name should at least 2 characters"),
+            validators.MinLengthValidator(2, "Team name should be at least 2 characters"),
             validators.MaxLengthValidator(49, "Team name should be less than 50 characters")
         ]
     )
@@ -53,3 +53,35 @@ class PlayerBuyForm(forms.Form):
             }
         ),
     )
+
+
+class PlayerSwapForm(forms.Form):
+    in_player = forms.ModelChoiceField(
+        queryset=None,
+        empty_label="Player In",
+        widget=forms.Select(
+            attrs={
+                "placeholder" : "Substitute",                
+                "class": "form-control bg-dark"
+            }
+        ),
+    )
+
+    out_player = forms.ModelChoiceField(
+        queryset=None,
+        empty_label="Player Out",
+        widget=forms.Select(
+            attrs={
+                "placeholder" : "Swap with",                
+                "class": "form-control bg-dark"
+            }
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        in_player = kwargs.pop("in_player_set")
+        out_player = kwargs.pop("out_player_set")
+        super().__init__(*args, **kwargs)
+        self.fields["in_player"].queryset = in_player
+        self.fields["out_player"].queryset = out_player
+    

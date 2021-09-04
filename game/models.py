@@ -38,7 +38,7 @@ class Team(models.Model):
 class Manager(models.Model):
     name = models.CharField(max_length=20)
     team_name = models.CharField(max_length=50)
-    total_bid = models.FloatField(null=True, blank=True)
+    total_bid = models.FloatField(null=True, blank=True, default=0.0)
     total_points = models.FloatField(null=True, blank=True, default=0.0)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -59,19 +59,19 @@ class Player(models.Model):
     minutes = models.FloatField()
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     status = models.ForeignKey(PlayerStatus, on_delete=models.SET_NULL, null=True, blank=True)
-    total_points = models.IntegerField(null=True, blank=True)
-    goals_scored = models.IntegerField(null=True, blank=True)
-    assists = models.IntegerField(null=True, blank=True)
-    clean_sheets = models.IntegerField(null=True, blank=True)
-    own_goals = models.IntegerField(null=True, blank=True)
-    penalties_saved = models.IntegerField(null=True, blank=True)
-    penalties_missed = models.IntegerField(null=True, blank=True)
-    yellow_cards = models.IntegerField(null=True, blank=True)
-    red_cards = models.IntegerField(null=True, blank=True)
-    saves = models.IntegerField(null=True, blank=True)
-    bonus = models.IntegerField(null=True, blank=True)
-    form = models.FloatField(null=True, blank=True)
-    selected_by_percent = models.FloatField(null=True, blank=True)
+    total_points = models.IntegerField(null=True, blank=True, default=0)
+    goals_scored = models.IntegerField(null=True, blank=True, default=0)
+    assists = models.IntegerField(null=True, blank=True, default=0)
+    clean_sheets = models.IntegerField(null=True, blank=True, default=0)
+    own_goals = models.IntegerField(null=True, blank=True, default=0)
+    penalties_saved = models.IntegerField(null=True, blank=True, default=0)
+    penalties_missed = models.IntegerField(null=True, blank=True, default=0)
+    yellow_cards = models.IntegerField(null=True, blank=True, default=0)
+    red_cards = models.IntegerField(null=True, blank=True, default=0)
+    saves = models.IntegerField(null=True, blank=True, default=0)
+    bonus = models.IntegerField(null=True, blank=True, default=0)
+    form = models.FloatField(null=True, blank=True, default=0.0)
+    selected_by_percent = models.FloatField(null=True, blank=True, default=0.0)
     base_bid = models.FloatField()
     current_bid = models.FloatField(null=True, blank=True)
     bought = models.BooleanField(blank=True, default=False)
@@ -83,19 +83,19 @@ class Player(models.Model):
 
 class PlayerGameWeek(models.Model):
     gw = models.IntegerField()
-    now_cost = models.FloatField(null=True, blank=True)
-    minutes = models.FloatField()
-    gw_points = models.IntegerField(null=True, blank=True)
-    goals_scored = models.IntegerField(null=True, blank=True)
-    assists = models.IntegerField(null=True, blank=True)
-    clean_sheets = models.IntegerField(null=True, blank=True)
-    own_goals = models.IntegerField(null=True, blank=True)
-    penalties_saved = models.IntegerField(null=True, blank=True)
-    penalties_missed = models.IntegerField(null=True, blank=True)
-    yellow_cards = models.IntegerField(null=True, blank=True)
-    red_cards = models.IntegerField(null=True, blank=True)
-    saves = models.IntegerField(null=True, blank=True)
-    bonus = models.IntegerField(null=True, blank=True)
+    now_cost = models.FloatField(null=True, blank=True, default=0.0)
+    minutes = models.FloatField(null=True, blank=True, default=0.0)
+    gw_points = models.IntegerField(null=True, blank=True, default=0)
+    goals_scored = models.IntegerField(null=True, blank=True, default=0.0)
+    assists = models.IntegerField(null=True, blank=True, default=0.0)
+    clean_sheets = models.IntegerField(null=True, blank=True, default=0.0)
+    own_goals = models.IntegerField(null=True, blank=True, default=0.0)
+    penalties_saved = models.IntegerField(null=True, blank=True, default=0.0)
+    penalties_missed = models.IntegerField(null=True, blank=True, default=0.0)
+    yellow_cards = models.IntegerField(null=True, blank=True, default=0.0)
+    red_cards = models.IntegerField(null=True, blank=True, default=0.0)
+    saves = models.IntegerField(null=True, blank=True, default=0.0)
+    bonus = models.IntegerField(null=True, blank=True, default=0.0)
     current_bid = models.FloatField(null=True, blank=True)
     bought_by = models.ForeignKey(Manager, on_delete=models.SET_NULL, null=True, blank=True)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
@@ -107,13 +107,23 @@ class PlayerGameWeek(models.Model):
 
 class ManagerGameWeek(models.Model):
     gw = models.IntegerField()
-    total_bid = models.FloatField(null=True, blank=True)
-    gw_points = models.FloatField(null=True, blank=True, default=0.0)
+    total_bid = models.FloatField(null=True, blank=True, default=0.0)
+    gw_points = models.FloatField(null=True, blank=True, default=0)
     manager = models.ForeignKey(Manager, on_delete=models.CASCADE)
+    benched = models.ManyToManyField(Player, related_name="in_benches")
+    squad = models.ManyToManyField(Player, related_name="in_squads")
 
     def __str__(self):
         return f"{self.manager.name}_{self.gw}"
 
+
+class TransferOffer(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    from_manager = models.ForeignKey(Manager, on_delete=models.CASCADE, null=True, blank=True, 
+                                     related_name="offer_sent")
+    to_manager = models.ForeignKey(Manager, on_delete=models.CASCADE, null=True, blank=True,
+                                    related_name="offer_received")
+    bid = models.FloatField(null=True, blank=True)
 
 
 class TransferHistory(models.Model):
@@ -123,7 +133,7 @@ class TransferHistory(models.Model):
     to_manager = models.ForeignKey(Manager, on_delete=models.CASCADE, null=True, blank=True,
                                     related_name="to_transfer")
     time = models.DateTimeField(auto_now=True, null=True, blank=True)
-    bid = models.FloatField(null=True, blank=True)
+    bid = models.FloatField()
     # 1: buy, 2. sell, 3. transfer
     type = models.IntegerField()
 
@@ -135,3 +145,7 @@ class Deadlines(models.Model):
     start_time = models.DateTimeField()
     gw = models.IntegerField()
     finished = models.BooleanField(blank=True, default=False)
+
+
+class Parameters(models.Model):
+    current_gameweek = models.IntegerField()

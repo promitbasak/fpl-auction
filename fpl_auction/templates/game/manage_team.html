@@ -1,0 +1,273 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} {{ player.web_name }} {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+
+#headshot {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+</style>
+
+{% endblock stylesheets %}
+{% load custom_filters %}
+
+{% block content %}
+
+
+<!-- ----------- Card --------------- -->
+{% load tz %}
+
+{% load custom_filters %}
+
+
+<div class="row">
+
+<div class="col-md-8 mx-auto">
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title"> Substitute Players</h4>
+      <div class="row"></div>
+      <h4 class="text-center">
+        {% if next_deadline %}
+            <span class="lead">Next deadline of substitution is {{ next_deadline }}</span>
+        {% endif %}
+      </h4>
+      <h6 class="card-category text-center">
+        {% if msg %}
+            {% if success %}
+              <span class="text-success">{{ msg | safe }}</span>
+            {% else %}
+              <span class="text-danger">{{ msg | safe }}</span>
+            {% endif %}
+        {% else %}
+          Choose players to substitute
+        {% endif %}
+      </h6>
+    </div>
+    <div class="card-body">
+      {% if form %}
+      <form role="form" method="post" action="" class="mx-auto">
+        {% csrf_token %} 
+              <div class="row">
+                <div class="col-md-2 px-md-1 mx-auto"></div>
+                <div class="col-md-4 px-md-1 mx-auto">
+                  <div class="form-group mx-auto">
+                    <label>Player In</label>
+                    {{ form.in_player }}
+                  </div>
+                  </div>
+                  <div class="col-md-4 px-md-1 mx-auto">
+                  <div class="form-group mx-auto">
+                    <label>Player Out</label>
+                    {{ form.out_player }}
+                  </div>
+                </div>
+                <div class="col-md-2 px-md-1 mx-auto"></div>
+              </div>
+            <div class="card-footer mx-auto text-center">
+              <button type="submit" name="Substitute" class="btn btn-fill btn-primary text-center">
+                Substitute</button>
+            </div>
+        </form>
+        {% endif %}
+        <div class="card-description"></div>
+      </div>
+      <div class="row mx-auto text-center">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- -------- details --------- -->
+<div class="row">
+    <div class="col-md-12">
+      <div class="card ">
+        <div class="card-header">
+          <h4 class="card-title"> Your Squad</h4>
+          {% if check_unstable_team %}
+          <div class="row"></div>
+          <h4 class="text-center text-danger">
+                <span class="lead">
+                  You team size is less than the minimum size: 15. Note that,  
+                  <b>{% if players.squad.count|add:players.benched.count < 11 %}4
+                    {% else %}{{ 15|subtract:players.squad.count|subtract:players.benched.count }}
+                    {% endif %}</b>
+                   of your players will automatically be benched after deadline.
+                </span>
+          </h4>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="row">
+
+
+            <div class="col-md-3 mx-auto">
+            <div class="table-responsive">
+            <table class="table tablesorter ">
+              <thead class=" text-primary">
+                <tr>
+                  <th class="text-center">
+                    Goalkeepers
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for player in players.goalkeepers %}
+                    <tr>
+                      <td class="text-center">
+                        <a href="{% url 'game:player_detail' player.id %}">
+                          {{ player.first_name}} {{ player.second_name }} </a>
+                      </td>
+                      <td class="text-center">
+                        {{ player.team.name }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+              </tbody>
+            </table>
+            </div>
+            </div>
+
+            <div class="col-md-3 mx-auto">
+              <div class="table-responsive">
+              <table class="table tablesorter ">
+                <thead class=" text-primary">
+                  <tr>
+                    <th class="text-center">
+                      Defenders
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for player in players.defenders %}
+                      <tr>
+                        <td class="text-center">
+                          <a href="{% url 'game:player_detail' player.id %}">
+                            {{ player.first_name}} {{ player.second_name }} </a>
+                        </td>
+                        <td class="text-center">
+                          {{ player.team.name }}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                </tbody>
+              </table>
+              </div>
+              </div>
+
+
+              <div class="col-md-3 mx-auto">
+                <div class="table-responsive">
+                <table class="table tablesorter ">
+                  <thead class=" text-primary">
+                    <tr>
+                      <th class="text-center">
+                        Midfielders
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for player in players.midfielders %}
+                        <tr>
+                          <td class="text-center">
+                            <a href="{% url 'game:player_detail' player.id %}">
+                              {{ player.first_name}} {{ player.second_name }} </a>
+                          </td>
+                          <td class="text-center">
+                            {{ player.team.name }}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                  </tbody>
+                </table>
+                </div>
+                </div>
+
+
+                <div class="col-md-3 mx-auto">
+                  <div class="table-responsive">
+                  <table class="table tablesorter ">
+                    <thead class=" text-primary">
+                      <tr>
+                        <th class="text-center">
+                          Forwards
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for player in players.forwards %}
+                          <tr>
+                            <td class="text-center">
+                              <a href="{% url 'game:player_detail' player.id %}">
+                                {{ player.first_name}} {{ player.second_name }} </a>
+                            </td>
+                            <td class="text-center">
+                              {{ player.team.name }}
+                            </td>
+                          </tr>
+                        {% endfor %}
+                    </tbody>
+                  </table>
+                  </div>
+                  </div>
+
+
+              </div>
+              <div class="row">
+                
+                <div class="col-md-3 mx-auto"></div>
+
+                <div class="col-md-6 mx-auto">
+                  <div class="table-responsive">
+                  <table class="table tablesorter ">
+                    <thead class=" text-primary">
+                      <tr>
+                        <th class="text-center">
+                          On bench
+                        </th>
+                        <th class="text-center"> </th>
+                        <th class="text-center"> </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for player in players.benched %}
+                          <tr>
+                            <td class="text-center">
+                              <a href="{% url 'game:player_detail' player.id %}">
+                                {{ player.first_name}} {{ player.second_name }} </a>
+                            </td>
+                            <td class="text-center">
+                              {{ player.team.name }}
+                            </td>
+                            <td class="text-center">
+                              {{ player.element_type.position_verbose }}
+                            </td>
+                          </tr>
+                          
+                        {% endfor %}
+                    </tbody>
+                  </table>
+                  </div>
+                  </div>
+
+                  <div class="col-md-3 mx-auto"></div>
+
+              </div>
+
+      </div>
+      </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -5,3 +5,4 @@ deploy_venv/*
 *.pyc
 staticfiles
 db.sqlite3
+todo.txt

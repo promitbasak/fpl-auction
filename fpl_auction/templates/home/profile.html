@@ -8,9 +8,9 @@
 {% block content %}
 
 {% load static %}
-
 <div class="row">
-  <div class="col-md-8">
+<div class="col-md-8">
+  <div class="row">
     <div class="card">
       <div class="card-header">
         <h5 class="title">Edit Profile</h5>
@@ -105,12 +105,79 @@
             </div>
           </div>
           <div class="card-footer text-center">
-            <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Save</button>
+            <button type="submit" name="form_type" value="profile" 
+            class="btn btn-fill btn-primary text-center">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+
+
+
+  <!-- ------------- Manager -------------- -->
+  {% if request.user.is_manager %}
+  <div class="row">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="title">Edit Manager Profile</h5>
+
+          <h6 class="card-category mx-auto">
+            {% if manager_success %}
+                {% if manager_msg %}
+                  <span class="text-success">{{ manager_msg | safe }}</span>
+                {% else %}
+                  Add your details
+                {% endif %}
+            {% else %}
+                {% if manager_msg %}
+                  <span class="text-danger">{{manager_msg | safe }}</span>
+                {% else %}
+                  Add your details
+                {% endif %}  
+            {% endif %}
+          </h6>
+        </div>
+        <div class="card-body">
+          <form role="form" method="post" action="">
+            {% csrf_token %} 
+
+            <div class="row">
+              <div class="col-md-3"></div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label> Name</label>
+                  {{ manager_form.name }}
+                </div>
+              </div>
+              <div class="col-md-3"></div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-3"></div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Team Name</label>
+                  {{ manager_form.team_name }}
+                </div>
+              </div>
+              <div class="col-md-3"></div>
+            </div>
+            <div class="card-footer text-center">
+              <button type="submit" name="form_type" value="manager" 
+                class="btn btn-fill btn-primary text-center">
+                Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+  </div>
+
+  {% else %}
+  <div class="row"></div>
+
+  {% endif %}
+</div>
 
 
   <!-- ------ Card ----------- -->
@@ -176,6 +243,8 @@
     </div>
   </div>
 </div>
+
+
 
 
 {% endblock content %}

@@ -21,6 +21,18 @@
               <p>Dashboard</p>
             </a>
           </li>
+          <li class="{% if 'index' in segment %} active {% endif %} ">
+            <a href="{% url 'game:manage_team' %}">
+              <i class="fas fa-users"></i>
+              <p>Manage Team</p>
+            </a>
+          </li>
+          <li class="{% if 'index' in segment %} active {% endif %} ">
+            <a href="{% url 'game:offer_list' %}">
+              <i class="fas fa-exchange-alt"></i>
+              <p>Offers</p>
+            </a>
+          </li>
           <li class="{% if 'icons' in segment %} active {% endif %}">
             <a href="{% url 'game:player_list' %}">
               <i class="tim-icons icon-user-run"></i>
@@ -31,6 +43,12 @@
             <a href="{% url 'game:manager_list' %}">
               <i class="tim-icons icon-single-02"></i>
               <p>Managers</p>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'game:transfer_history' %}" >
+              <i class="far fa-clock"></i>
+              <p>Transfer History</p>
             </a>
           </li>
           <li>

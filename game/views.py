@@ -7,8 +7,30 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
-from .models import Player, Manager, TransferHistory, Team, PlayerType
-from .forms import ManagerForm, PlayerBuyForm
+from .models import Player, Manager, TransferHistory, Team, PlayerType, Parameters, TransferOffer
+from .forms import ManagerForm, PlayerBuyForm, PlayerSwapForm
+from .validators import check_deadline, offer_create_pre_validator, player_sell_post_validation, player_sell_pre_validation, squad_validation
+from .mixins import ManagerRequiredMixin
+from .validators import (
+    player_buy_post_validation, 
+    player_buy_pre_validation,
+    player_sell_pre_validation,
+    player_sell_post_validation
+)
+from .utils import (
+    add_warning_to_offers,
+    commit_offer_accept,
+    commit_offer_create,
+    commit_offer_discard,
+    commit_player_buy, 
+    commit_player_sell, 
+    commit_create_manager,
+    commit_player_swap, 
+    get_all_squad_players, 
+    get_next_deadline,
+    dict_to_object,
+    squad_truncate
+)
 
 User = get_user_model()
 
@@ -26,21 +48,21 @@ class PlayerList(LoginRequiredMixin, ListView):
     filterset_fields = ["team", "position", "search", "orderby"]
     ordering_fields = ["web_name", "total_points", "selected_by_percent", "now_cost"]
     ordering_field_names = ["Name", "Points", "Selected by", "Price"]
-    paginate_by = 60
+    paginate_by = 30
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(~Q(status__status="n"))
         filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
         if "team" in filters:
             queryset = queryset.filter(team__id=filters["team"])
-            params = self.request.GET.copy()
-            params["page"] = 1
-            self.request.GET = params
+            # params = self.request.GET.copy()
+            # params["page"] = 1
+            # self.request.GET = params
         if "position" in filters:
             queryset = queryset.filter(element_type__id=filters["position"])
-            params = self.request.GET.copy()
-            params["page"] = 1
-            self.request.GET = params
+            # params = self.request.GET.copy()
+            # params["page"] = 1
+            # self.request.GET = params
         if "search" in filters:
             queryset = queryset.filter(web_name__contains=filters["search"])
         if "orderby" in filters and filters["orderby"] in self.ordering_fields:
@@ -97,166 +119,226 @@ class ManagerDetail(LoginRequiredMixin, DetailView):
 
 
 class ManagerCreate(LoginRequiredMixin, View):
-    
+    template_path = "game/manager_create.html"
+
     def get(self, request):
-        is_exists = request.user.is_manager
-        form = ManagerForm(None)
-        return render(request, 
-                      "game/manager_create.html", 
-                      {"form": form, "msg" : None, "is_exists": is_exists}
-                     )
+        msg, success = None, True
+        form = ManagerForm(request.POST or None)
+        if request.session.get("manager_error_message"):
+            msg = request.session.pop("manager_error_message")
+            success = False
+        if request.user.is_manager:
+            msg = "You are already a manager"
+            form, success = None, False
+        context = {"form": form, "msg": msg, "success": success}
+        return render(request, self.template_path, context=context)
     
     def post(self, request):
+        msg, success = None, False
         form = ManagerForm(request.POST or None)
-        msg = None
-        is_exists = request.user.is_manager
-        if not is_exists:
-            try:
-                if form.is_valid():
-                    name = form.cleaned_data.get("name")
-                    team_name = form.cleaned_data.get("team_name")
-                    manager = Manager(name=name, team_name=team_name, total_bid=0.0, user=request.user)
-                    manager.save()
-                    current_user = User.objects.get(pk=request.user.id)
-                    current_user.is_manager = True
-                    current_user.save()
-                    return redirect(reverse_lazy("home:profile"))
-                else:
-                    d = json.loads(form.errors.as_json())
-                    e_list = [j["message"] for i in d.values() for j in i]
-                    e_list = e_list if len(e_list)<2 else e_list[:2]
-                    msg = ", ".join(e_list)
-            except Exception as e:
-                msg = repr(e)
+        if request.user.is_manager:
+            msg = "You are already a manager"
+            form = None
+        elif form.is_valid():
+            name = form.cleaned_data.get("name")
+            team_name = form.cleaned_data.get("team_name")
+            commit_create_manager(request.user, name, team_name)
+            form, success = None, True
+            msg = "Manager profile created successfully. <br/> Now you can explore and trade players."
         else:
-            msg = "You already have manager profile!" 
-        return render(request, 
-                      "game/manager_create.html", 
-                      {"form": form, "msg" : msg, "is_exists": is_exists}
-                     )
-
-
-class PlayerBuyView(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        try:
-            player = Player.objects.get(pk=pk)
-        except:
-            player=None
-        form = PlayerBuyForm()
-        return render(request, 
-                      "game/player_buy.html", 
-                      {"form": form, "msg" : None, "success":False, "player":player}
-                     )
-    def post(self, request, pk):
-        form = PlayerBuyForm(request.POST or None)
-        msg = None
-        player = None
-        success = False
-        if not request.user.is_manager:
-            create_manager_url = reverse_lazy("game:create_manager")
-            msg = f"<a href='{create_manager_url}'>Create you manager profile</a> first!"
-            return render(request, 
-                      "game/player_buy.html", 
-                      {"form": form, "msg" : msg, "success": success, "player": player}
-                     )
-        try:
-            player = Player.objects.get(pk=pk)
-            try:
-                bid_value = float(request.POST.get("bid"))
-            except:
-                msg = "Enter a valid bid price!"
-                return render(request, 
-                        "game/player_buy.html", 
-                        {"form": form, "msg" : msg, "success": success, "player": player}
-                        )
-            if player.base_bid>bid_value:
-                msg = "Bid cannot be less than the base value."
-            elif player.bought_by and player.bought_by.id == request.user.manager.id:
-                msg = "You have already bought this player."
-            elif player.bought_by:
-                manager_url = reverse_lazy('game:manager_detail', args=[player.bought_by.id])
-                msg = f"Player is bought by <a href='{manager_url}'>{player.bought_by.name}</a>"
-            else:
-                manager = Manager.objects.get(pk=request.user.manager.id)
-                player.bought_by = manager
-                player.bought = True
-                player.current_bid = bid_value
-                player.save()
-                msg = "Player bought successfully!"
-                success = True
-                trans_hist = TransferHistory(player=player, to_manager=manager, bid=bid_value, type=1)
-                trans_hist.save()
-                manager.total_bid = round(manager.total_bid + bid_value, 4)
-                manager.save()
-                return render(request, 
-                      "game/player_buy.html", 
-                      {"form": PlayerBuyForm(), "msg" : msg, "success": success, "player": player}
-                     )
-        except:
-            msg = f"Player not found!"
-        return render(request, 
-                      "game/player_buy.html", 
-                      {"form": form, "msg" : msg, "success": success, "player": player}
-                     )
-        
-class PlayerSellView(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        try:
-            player = Player.objects.get(pk=pk)
-        except:
-            player=None
-        form = PlayerBuyForm()
-        return render(request, 
-                      "game/player_sell.html", 
-                      {"form": form, "msg" : None, "success":False, "player":player}
-                     )
-    def post(self, request, pk):
-        form = PlayerBuyForm(request.POST or None)
-        msg = None
-        player = None
-        success = False
-        if not request.user.is_manager:
-            create_manager_url = reverse_lazy("game:create_manager")
-            msg = f"<a href='{create_manager_url}'>Create you manager profile</a> first!"
-            return render(request, 
-                      "game/player_sell.html", 
-                      {"form": form, "msg" : msg, "success": success, "player": player}
-                     )
-        try:
-            player = Player.objects.get(pk=pk)
-            if not player.bought or player.bought_by.id != request.user.manager.id:
-                msg = "You have not bought this player."
-            else:
-                manager = Manager.objects.get(pk=request.user.manager.id)
-                prev_bid = player.current_bid
-                player.bought_by = None
-                player.bought = False
-                player.current_bid = None
-                player.save()
-                msg = "Player sold successfully!"
-                success = True
-                trans_hist = TransferHistory(player=player, from_manager=manager, bid=prev_bid, type=2)
-                trans_hist.save()
-                manager.total_bid = round(manager.total_bid - prev_bid, 4)
-                manager.save()
-                return render(request, 
-                      "game/player_sell.html", 
-                      {"form": PlayerBuyForm(), "msg" : msg, "success": success, "player": player}
-                     )
-        except:
-            msg = f"Player not found!"
-        return render(request, 
-                      "game/player_sell.html", 
-                      {"form": form, "msg" : msg, "success": success, "player": player}
-                     )
-
-
-class PlayerTransferView(LoginRequiredMixin, View):
-    pass
+            d = json.loads(form.errors.as_json())
+            e_list = [j["message"] for i in d.values() for j in i]
+            e_list = e_list if len(e_list)<2 else e_list[:2]
+            msg = ", ".join(e_list)
+        context = {"form": form, "msg": msg, "success": success}
+        return render(request, self.template_path, context=context)
         
 
-class TransferHistoryList(LoginRequiredMixin, View):
+
+class PlayerBuyView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/player_buy.html"
+
+    def get(self, request, pk):
+        manager = request.user.manager
+        player = Player.objects.filter(pk=pk).first()
+        success, msg = player_buy_pre_validation(manager, player)
+        form = PlayerBuyForm(initial={"bid": player.base_bid}) if success else None
+        context = {"form": form, "msg" : msg, "success": success, "player": player}
+        return render(request, self.template_path, context=context)
+
+    def post(self, request, pk):
+        manager = request.user.manager
+        player = Player.objects.filter(pk=pk).first()
+        bid_value = request.POST.get("bid")
+        success, msg, bid_value = player_buy_post_validation(manager, player, bid_value)
+        form = PlayerBuyForm(request.POST or None)
+        if success:
+            commit_player_buy(manager, player, bid_value)
+            player, form = None, None
+        context = {"form": form, "msg" : msg, "success": success, "player": player}
+        return render(request, self.template_path, context=context)
+
+
+        
+class PlayerSellView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/player_sell.html"
+
+    def get(self, request, pk):
+        manager = request.user.manager
+        player = Player.objects.filter(pk=pk).first()
+        warning = None
+        success, msg, warning = player_sell_pre_validation(manager, player) 
+        form = PlayerBuyForm() if success else None
+        context = {"form": form, "msg" : msg, "success": success, "player": player, "warning": warning}
+        return render(request, self.template_path, context=context)
+
+    def post(self, request, pk):
+        manager = request.user.manager
+        player = Player.objects.filter(pk=pk).first()
+        success, msg, warning = player_sell_post_validation(manager, player)
+        form = PlayerBuyForm(request.POST or None)
+        if success:
+            bid_value = player.current_bid
+            added = commit_player_sell(manager, player, bid_value)
+            player, form = None, None
+        context = {"form": form, "msg" : msg, "success": success, "player": player}
+        return render(request, self.template_path, context=context)
+
+
+
+class OfferView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/offer_list.html"
+
     def get(self, request):
-        transfers = TransferHistory.objects.all()
-        context = {"list": transfers}
-        return render(request, "", context=context)
+        in_msg, in_success, out_msg, out_success = None, False, None, False
+        if request.session.get("in_offer_accept_message"):
+            in_msg = request.session.pop("in_offer_accept_message")
+            in_success = request.session.pop("in_offer_accept_state")
+        elif request.session.get("out_offer_accept_message"):
+            out_msg = request.session.pop("out_offer_accept_message")
+            out_success = request.session.pop("out_offer_accept_state") 
+        sent = TransferOffer.objects.filter(from_manager=self.request.user.manager).order_by("-id")
+        received = TransferOffer.objects.filter(to_manager=self.request.user.manager).order_by("-id")
+        warnings, is_valids = add_warning_to_offers(received)
+        context = {"sent": sent, "received": received, "in_msg": in_msg, "in_success": in_success,
+            "out_msg": out_msg, "out_success": out_success, "warnings":warnings, "is_valids": is_valids}
+        return render(request, self.template_path, context=context)
+
+
+
+class PlayerOfferCreateView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/offer_create.html"
+
+    def get(self, request, pk):
+        manager = request.user.manager
+        player = Player.objects.filter(pk=pk).first()
+        to_manager = player.bought_by
+        success, msg = offer_create_pre_validator(manager, to_manager, player)
+        form = PlayerBuyForm() if success else None
+        context = {"form": form, "msg" : msg, "success": success, "player": player}
+        return render(request, self.template_path, context=context)
+
+    def post(self, request, pk):
+        manager = request.user.manager
+        player = Player.objects.filter(pk=pk).first()
+        to_manager = player.bought_by
+        bid_value = request.POST.get("bid")
+        success, msg = commit_offer_create(manager, to_manager, player, bid_value)
+        form = PlayerBuyForm(request.POST or None)
+        if success:
+            player, form = None, None
+        context = {"form": form, "msg" : msg, "success": success, "player": player}
+        return render(request, self.template_path, context=context)
+
+
+class OfferAcceptView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/offer_list.html"
+
+    def post(self, request):
+        manager = request.user.manager
+        offer_id = request.POST.get("offer_id")
+        offer = TransferOffer.objects.filter(pk=offer_id).first()
+        success, msg = commit_offer_accept(manager, offer)
+        if offer.to_manager == request.user.manager:
+            self.request.session["in_offer_accept_message"] = msg
+            self.request.session["in_offer_accept_state"] = success
+        else:
+            self.request.session["out_offer_accept_message"] = msg
+            self.request.session["out_offer_accept_state"] = success
+        return redirect(to=reverse_lazy("game:offer_list"))
+
+
+class OfferDiscardView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/offer_list.html"
+
+    def post(self, request):
+        manager = request.user.manager
+        offer_id = request.POST.get("offer_id")
+        print(offer_id, type(offer_id))
+        offer = TransferOffer.objects.filter(pk=offer_id).first()
+        success, msg = commit_offer_discard(manager, offer)
+        if offer.to_manager == request.user.manager:
+            self.request.session["in_offer_accept_message"] = msg
+            self.request.session["in_offer_accept_state"] = success
+        else:
+            self.request.session["out_offer_accept_message"] = msg
+            self.request.session["out_offer_accept_state"] = success
+        return redirect(to=reverse_lazy("game:offer_list"))
+
+
+
+class SquadView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/manage_team.html"
+
+    def get(self, request):
+        if check_deadline():
+            squad_truncate(request.user.manager)
+        players = get_all_squad_players(request.user.manager)
+        deadline = check_deadline()
+        next_deadline = get_next_deadline()
+        msg = "Substitute deadline is over, please check back later" if deadline else None
+        success = False if deadline else True
+        form = (None if deadline else 
+                    PlayerSwapForm(in_player_set=players["benched"], out_player_set=players["squad"]))
+        context = {"players": dict_to_object(players), "form": form, "success": success, "msg": msg,
+                     "next_deadline": next_deadline}
+        return render(request, self.template_path, context=context)
+
+    def post(self, request):
+        success, msg = True, None
+        deadline = check_deadline()
+        if deadline:
+            success = False
+            msg = "Substitute deadline is over, please check back later"
+        else:
+            in_player, out_player = request.POST.get("in_player"), request.POST.get("out_player")
+            in_player = Player.objects.filter(pk=in_player).first()
+            out_player = Player.objects.filter(pk=out_player).first()
+            if in_player and out_player:
+                success, msg = commit_player_swap(request.user.manager, in_player, out_player)
+            else:
+                success = False
+                msg = "Select both player in and player out!"
+        players = get_all_squad_players(request.user.manager)
+        form = (None if deadline else 
+                    PlayerSwapForm(in_player_set=players["benched"], out_player_set=players["squad"]))
+        next_deadline = get_next_deadline()
+        context = {"players": dict_to_object(players), "form": form, "success": success, "msg": msg,
+                     "next_deadline": next_deadline}
+        return render(request, self.template_path, context=context)
+            
+
+
+class TransferHistoryList(LoginRequiredMixin, ListView):
+    model = TransferHistory
+    paginate_by = 30
+
+    def get_queryset(self):
+        return super().get_queryset().order_by("-time")
+
+    def get_template_names(self):
+        return ["game/transfer_history.html"]
+
+
+class CustomRedirectView(View):
+    pass

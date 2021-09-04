@@ -5,6 +5,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 {% load custom_filters %}
+{% load humanize %}
 
 {% block content %}
 
@@ -64,7 +65,7 @@
   <div class="col-md-12">
     <div class="card ">
       <div class="card-header">
-        <h4 class="card-title"> Current Players</h4>
+        <h4 class="card-title"> Current Players </h4>
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -84,16 +85,10 @@
                   Points
                 </th>
                 <th class="text-center">
-                  Current Cost
+                  FPL Price
                 </th>
                 <th class="text-center">
                   Bid Price
-                </th>
-                <th class="text-center">
-                  Selected By
-                </th>
-                <th class="text-center">
-                  Bought
                 </th>
                 <th class="text-center">
                   Bought By
@@ -101,7 +96,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for player in manager.player_set.all %}
+              {% for player in manager.player_set.all|dictsort:"element_type.id" %}
               <tr>
                 <td class="text-center">
                   <a href="{% url 'game:player_detail' player.id %}">
@@ -120,13 +115,11 @@
                   {{ player.now_cost }}
                 </td>
                 <td class="text-center">
+                  {% if player.current_bid %}
+                  {{ player.current_bid }}
+                  {% elif player.base_bid %}
                   {{ player.base_bid }}
-                </td>
-                <td class="text-center">
-                  {{ player.selected_by_percent }}
-                </td>
-                <td class="text-center">
-                  {{ player.bought }}
+                  {% endif %}
                 </td>
                 <td class="text-center">
                   {% if player.bought_by %}
@@ -179,7 +172,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for mgw in manager.managergameweek_set.all %}
+              {% for mgw in manager.managergameweek_set.all|dictsort:"gw" %}
                   <tr>
                     <td class="text-center">
                       {{ mgw.gw }}
@@ -191,7 +184,81 @@
                       {{ mgw.gw_points }}
                     </td>
                     <td class="text-center">
+
+
+                      <!-- Button trigger modal -->
+                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong{{ mgw.gw }}">
+                        See Players
+                      </button>
+
+                      <!-- Modal -->
+                      <div class="modal modal-black fade" id="exampleModalLong{{ mgw.gw }}" tabindex="-1" role="dialog" 
+                        aria-labelledby="exampleModalLong{{ mgw.gw }}Title" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="exampleModalLong{{ mgw.gw }}Title">Players</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                <i class="tim-icons icon-simple-remove"></i>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              
+
+                              <div class="table-responsive">
+                                <table class="table tablesorter " id="">
+                                  <thead class=" text-primary">
+                                    <tr>
+                                      <th class="text-center">
+                                        Name
+                                      </th>
+                                      <th class="text-center">
+                                        Team
+                                      </th>
+                                      <th class="text-center">
+                                        Position
+                                      </th>
+                                      <th class="text-center">
+                                        Points
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {% for player in mgw.squad.all|dictsort:"element_type.id" %}
+                                    <tr>
+                                      <td class="text-center">
+                                        <a href="{% url 'game:player_detail' player.id %}">
+                                          {{ player.first_name}} {{ player.second_name }}</a>
+                                      </td>
+                                      <td class="text-center">
+                                        {{ player.team.name }}
+                                      </td>
+                                      <td class="text-center">
+                                        {{ player.element_type.position_verbose }}
+                                      </td>
+                                      <td class="text-center">
+                                        {% player_from_gameweek gw=mgw.gw player=player %}
+                                      </td>
+                                    </tr>
                       
+                                    {% endfor %}
+                      
+                                  </tbody>
+                                </table>
+                              </div>
+
+
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+
+
+
                     </td>
                   </tr>
                 {% endfor %}
@@ -242,6 +309,9 @@
                 <th class="text-center">
                   Cost
                 </th>
+                <th class="text-center">
+                  Time
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -284,6 +354,9 @@
                 </td>
                 <td class="text-center">
                   {{ transfer.bid }}
+                </td>
+                <td class="text-center">
+                  {{ transfer.time|naturalday|title }}
                 </td>
               </tr>
 
