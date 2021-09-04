@@ -98,7 +98,7 @@ def run(*args):
         pgw = PlayerGameWeek(**gw_dict)
         pgw.save()
 
-        player.total_points += gw_dict["total_points"]
+        player.total_points += gw_dict["gw_points"]
         player.save()
 
 

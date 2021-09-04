@@ -6,7 +6,7 @@ heroku run python manage.py flush
 heroku run python manage.py runscript initialize_data
 
 # update all
-python manage.py runscript update_all
+heroku run python manage.py runscript update_all
 
 
 ## Heroku backup restore (https://devcenter.heroku.com/articles/heroku-postgres-import-export)
