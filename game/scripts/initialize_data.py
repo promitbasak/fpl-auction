@@ -73,6 +73,7 @@ def run():
     for p in tqdm(players_raw):
         player_data = [p[fpl_field] for fpl_field in fpl_fields]
         player_dict = dict(zip(fields, player_data))
+        player_dict["total_points"] = 0
         player_dict["team"] = Team.objects.get(fpl_id=player_dict["team"])
         player_dict["element_type"] = PlayerType.objects.get(fpl_id=player_dict["element_type"])
         player_dict["status"], _ = PlayerStatus.objects.get_or_create(status=player_dict["status"],

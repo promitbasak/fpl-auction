@@ -98,6 +98,10 @@ def run(*args):
         pgw = PlayerGameWeek(**gw_dict)
         pgw.save()
 
+        player.total_points += gw_dict["total_points"]
+        player.save()
+
+
     if update_managers:
         for manager in tqdm(Manager.objects.all()):
             mgw = ManagerGameWeek.objects.get(gw=gw, manager=manager)

@@ -1,5 +1,26 @@
+## Deploy 
+git add .
+git commit -m "message"
+git push heroku master
+heroku run python manage.py flush
+heroku run python manage.py runscript initialize_data
+
 # update all
 python manage.py runscript update_all
+
+
+## Heroku backup restore (https://devcenter.heroku.com/articles/heroku-postgres-import-export)
+
+# heroku postgres dump/backup and download
+heroku pg:backups:capture
+heroku pg:backups:download
+
+# heroku postgres restore from dump/backup
+aws s3 presign s3://your-bucket-address/your-object
+heroku pg:backups:restore '<SIGNED URL>' DATABASE_URL
+
+
+## Miscellenious
 
 # initialize data
 python manage.py runscript initialize_data
@@ -20,22 +41,3 @@ python manage.py runscript mgw_create
 pg_dump -U postgres -W -F t mydb > E:\Projects\Fantasy_Auction\deployment\mydb_backup20210904_0422_gw1.tar
 # now create a backup db then execute
 pg_restore -c -U postgres -d mydb_backup E:\Projects\Fantasy_Auction\deployment\mydb_backup20210904_0422_gw1.tar
-
-
-## Deploy 
-git add .
-git commit -m "message"
-git push heroku master
-heroku run python manage.py flush
-heroku run python manage.py runscript initialize_data
-
-
-## Heroku backup restore (https://devcenter.heroku.com/articles/heroku-postgres-import-export)
-
-# heroku postgres dump/backup and download
-heroku pg:backups:capture
-heroku pg:backups:download
-
-# heroku postgres restore from dump/backup
-aws s3 presign s3://your-bucket-address/your-object
-heroku pg:backups:restore '<SIGNED URL>' DATABASE_URL
