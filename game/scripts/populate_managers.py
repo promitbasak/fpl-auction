@@ -9,10 +9,10 @@ from game.validators import player_buy_post_validation
 
 def run():
 
-    raise Exception("You are not supposed to run this script")
-    assert False
+    # raise Exception("You are not supposed to run this script")
+    # assert False
 
-    confirm = input(f"mgw will be copied. Enter y to continue: ")
+    confirm = input(f"Managers will automatically assigned. Enter y to continue: ")
     if not confirm=="y":
         print("Operation aborted.")
         return None
@@ -41,11 +41,24 @@ def run():
                     commit_player_buy(manager, player, bid_value)
             i += count
 
+
     for username, password, email, name, team_name in (
             ("demo", "ashphalt", "fsf@dgd.cofdm", "Demo", "Demo"),
         ):
         user = User.objects.create_user(username=username, password=password, email=email)
         commit_create_manager(user, name, team_name)
+    
+    for pos,count in tqdm([("GKP", 1), ("DEF", 2), ("MID", 2), ("FWD", 2)]):
+        i = 15
+        for manager in Manager.objects.all():
+            players = Player.objects.filter(element_type__position=pos).order_by("-total_points", "fpl_id")[i:i+count]
+            for player in players:
+                bid_value = player.base_bid
+                success, msg, _ = player_buy_post_validation(manager, player, bid_value)
+                print(f"{manager.name}: {msg}")
+                if success:
+                    commit_player_buy(manager, player, bid_value)
+            i += count
     
     for username, password, email, name, team_name in (
             ("demo2", "ashphalt", "ffsf@dgd.cofdm", "Demo2", "Demo2"),
