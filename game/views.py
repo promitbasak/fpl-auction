@@ -360,7 +360,7 @@ class AuctionListView(LoginRequiredMixin, LeagueManagerRequiredMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        queryset = super().get_queryset().all()
+        queryset = super().get_queryset().filter(~Q(bought=True))
         filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
         if "team" in filters:
             queryset = queryset.filter(team__id=filters["team"])

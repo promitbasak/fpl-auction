@@ -28,7 +28,11 @@
 
                   <h6 class="card-category">
                       {% if msg %}
-                        <span class="text-danger">{{ msg | safe }}</span>
+                        {% if success %}
+                          <span class="text-success">{{ msg | safe }}</span>
+                        {% else %}
+                          <span class="text-danger">{{ msg | safe }}</span>
+                        {% endif %}
                       {% else %}
                         Add your credentials 
                       {% endif %}  
@@ -36,7 +40,6 @@
                 </div>
 
               {% if success %}
-
                 <p>
                   Please <a href={% url 'accounts:login' %}>log in</a> to the new account.
                 </p>  
