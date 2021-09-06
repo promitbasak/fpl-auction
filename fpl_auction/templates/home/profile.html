@@ -212,17 +212,17 @@
       <div class="card-footer">
         <div class="row mx-auto text-center">
           <div class="button-container mx-auto text-center">
-              <a href="{% if user.facebook_link %}{{ user.facebook_link }}{% else %}#{% endif %}",
-               style="color: #ffffff;" target="_blank">
+              <a href="{% if user.facebook_link %}{{ user.facebook_link }}{% else %}javascript:void(0){% endif %}",
+               style="color: #ffffff;" target="{% if user.facebook_link %}_blank{% endif %}">
                <button href="javascript:void(0)" class="btn btn-icon btn-round btn-facebook">
                 <i class="fab fa-facebook"></i></button></a>
-              <a href="{% if user.fpl_id %}https://fantasy.premierleague.com/entry/{{ user.fpl_id }}/event/1{% else %}#{% endif %}",
-                style="color: #ffffff;" target="_blank">
+              <a href="{% if user.fpl_id %}https://fantasy.premierleague.com/entry/{{ user.fpl_id }}/event/1{% else %}javascript:void(0){% endif %}",
+                style="color: #ffffff;" target="{% if user.fpl_id %}_blank{% endif %}">
                 <button href="javascript:void(0)" class="btn btn-icon btn-round btn-twitter">
                 <i class="tim-icons icon-trophy"></i></button>
               </a>
-              <a href="{% if user.linkedin_link %}{{ user.linkedin_link }}{% else %}#{% endif %}", 
-                  style="color: #ffffff;" target="_blank">
+              <a href="{% if user.linkedin_link %}{{ user.linkedin_link }}{% else %}javascript:void(0){% endif %}", 
+                  style="color: #ffffff;" target="{% if user.linkedin_link %}_blank{% endif %}">
                   <button href="javascript:void(0)" class="btn btn-icon btn-round btn-google">
                   <i class="fab fa-linkedin"></i></button></a>
           </div>

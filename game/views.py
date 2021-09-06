@@ -1,24 +1,34 @@
-import json, math
+import json
 
-from django.views.generic import View, CreateView, UpdateView, ListView, DetailView
+from django.views.generic import View, ListView, DetailView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, render, redirect
-from django.db.models import Q
+from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
-from .models import Player, Manager, TransferHistory, Team, PlayerType, Parameters, TransferOffer
+from .models import AuctionBid, Player, Manager, TransferHistory, Team, PlayerType, Parameters, TransferOffer
 from .forms import ManagerForm, PlayerBuyForm, PlayerSwapForm
-from .validators import check_deadline, offer_create_pre_validator, player_sell_post_validation, player_sell_pre_validation, squad_validation
-from .mixins import ManagerRequiredMixin
+from .mixins import ManagerRequiredMixin, LeagueManagerRequiredMixin
 from .validators import (
+    auction_bid_create_pre_validation,
     player_buy_post_validation, 
     player_buy_pre_validation,
     player_sell_pre_validation,
-    player_sell_post_validation
+    player_sell_post_validation,
+    auction_player_bid_pre_validation,
+    check_deadline,
+    offer_create_pre_validator,
+    player_sell_post_validation,
+    player_sell_pre_validation,
+    squad_validation,
+    check_auction_finished,
 )
 from .utils import (
     add_warning_to_offers,
+    commit_auction_approve,
+    commit_auction_bid,
+    commit_auction_create,
     commit_offer_accept,
     commit_offer_create,
     commit_offer_discard,
@@ -26,11 +36,14 @@ from .utils import (
     commit_player_sell, 
     commit_create_manager,
     commit_player_swap, 
-    get_all_squad_players, 
+    get_all_squad_players,
+    get_auction_bid, 
     get_next_deadline,
     dict_to_object,
     squad_truncate
 )
+from .constants import manager_max_balance
+
 
 User = get_user_model()
 
@@ -55,14 +68,8 @@ class PlayerList(LoginRequiredMixin, ListView):
         filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
         if "team" in filters:
             queryset = queryset.filter(team__id=filters["team"])
-            # params = self.request.GET.copy()
-            # params["page"] = 1
-            # self.request.GET = params
         if "position" in filters:
             queryset = queryset.filter(element_type__id=filters["position"])
-            # params = self.request.GET.copy()
-            # params["page"] = 1
-            # self.request.GET = params
         if "search" in filters:
             queryset = queryset.filter(web_name__contains=filters["search"])
         if "orderby" in filters and filters["orderby"] in self.ordering_fields:
@@ -94,7 +101,6 @@ class PlayerList(LoginRequiredMixin, ListView):
     def get_template_names(self):
         return ["game/players.html"]
     
-    
 
 
 class PlayerDetail(LoginRequiredMixin, DetailView):
@@ -115,6 +121,11 @@ class ManagerList(LoginRequiredMixin, ListView):
 
 class ManagerDetail(LoginRequiredMixin, DetailView):
     model = Manager
+
+    def get_context_data(self, **kwargs):
+        context = super(ManagerDetail, self).get_context_data(**kwargs)
+        context["manager_max_balance"] = manager_max_balance
+        return context
 
 
 
@@ -340,5 +351,153 @@ class TransferHistoryList(LoginRequiredMixin, ListView):
         return ["game/transfer_history.html"]
 
 
+
+class AuctionListView(LoginRequiredMixin, LeagueManagerRequiredMixin, ListView):
+    model = Player
+    filterset_fields = ["team", "position", "search", "orderby"]
+    ordering_fields = ["web_name", "total_points", "selected_by_percent", "now_cost"]
+    ordering_field_names = ["Name", "Points", "Selected by", "Price"]
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = super().get_queryset().all()
+        filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
+        if "team" in filters:
+            queryset = queryset.filter(team__id=filters["team"])
+        if "position" in filters:
+            queryset = queryset.filter(element_type__id=filters["position"])
+        if "search" in filters:
+            queryset = queryset.filter(web_name__contains=filters["search"])
+        if "orderby" in filters and filters["orderby"] in self.ordering_fields:
+            if filters["orderby"] in ["total_points", "selected_by_percent"]:
+                queryset = queryset.order_by("-" + filters["orderby"])
+            else:
+                queryset = queryset.order_by(filters["orderby"])
+        else:
+            queryset = queryset.order_by("web_name")
+        return queryset
+    
+
+    def get_context_data(self, **kwargs):
+        filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
+        context = super().get_context_data(**kwargs)
+        context["teams"] = dict(Team.objects.all().values_list("id", "name"))
+        context["positions"] = dict(PlayerType.objects.all().values_list("id", "position_verbose"))
+        context["sorting_fields"] = dict(zip(self.ordering_fields, self.ordering_field_names))
+        filters = {k:v for k,v in self.request.GET.items() if k in self.filterset_fields}
+        context["current_team"] = int(self.request.GET.get("team")) if "team" in filters else None
+        context["current_position"] = int(self.request.GET.get("position")) if "position" in filters else None
+        context["current_search"] = self.request.GET.get("search") if "search" in filters else None
+        if "orderby" in filters and filters["orderby"] in self.ordering_fields:
+            context["current_orderby"] = self.request.GET.get("orderby")
+        else:
+            context["current_orderby"] = "web_name"
+        if self.request.session.get("auction_create_msg"):
+            context["msg"] = self.request.session.pop("auction_create_msg")
+        if self.request.session.get("auction_create_success"):
+            context["success"] = self.request.session.pop("auction_create_success")
+        return context
+    
+    def get_template_names(self):
+        return ["game/auction_list.html"]
+
+
+
+class AuctionRoomView(LoginRequiredMixin, ManagerRequiredMixin, View):
+    template_path = "game/auction_room.html"
+
+    def get(self, request):
+        success, msg, approval_success, approval_msg = True, None, True, None
+        finish_success, finish_msg = True, None
+        auction_bid = get_auction_bid()
+        sold_bids = AuctionBid.objects.filter(is_sold=True)
+        form = PlayerBuyForm() if auction_bid else None
+        if request.session.get("auction_approve_msg"):
+            approval_msg = request.session.pop("auction_approve_msg")
+            approval_success = request.session.pop("auction_approve_success")
+        if request.session.get("auction_finish_msg"):
+            finish_msg = request.session.pop("auction_finish_msg")
+            finish_success = request.session.pop("auction_finish_success")
+        context = {"auction_bid": auction_bid, "sold_bids": sold_bids, "form": form,
+                    "success": success, "msg": msg, "approval_msg": approval_msg,
+                    "approval_success": approval_success, "finish_msg": finish_msg,
+                    "finish_success": finish_success, "manager_max_balance": manager_max_balance}
+        return render(request, self.template_path, context=context)
+    
+    def post(self, request):
+        manager = request.user.manager
+        form = PlayerBuyForm(request.POST or None)
+        bid_value = request.POST.get("bid")
+        auction_bid_id = request.POST.get("auction_bid_id")
+        auction_bid = AuctionBid.objects.filter(pk=auction_bid_id).first()
+        success, msg, bid_value= auction_player_bid_pre_validation(auction_bid, bid_value)
+        if success:
+            success, msg, bid_value = player_buy_post_validation(manager, auction_bid.player, 
+                                        bid_value, auction=True, top_bid=auction_bid.highest_bid)
+        if success:
+            commit_auction_bid(auction_bid, manager, bid_value)
+            msg = "You have successfully placed the bid"
+        sold_bids = AuctionBid.objects.filter(is_sold=True)
+        auction_bid = get_auction_bid()
+        context = {"auction_bid": auction_bid, "sold_bids": sold_bids, "form": form, 
+                    "msg" : msg, "success": success, "manager_max_balance": manager_max_balance}
+        return render(request, self.template_path, context=context)
+
+
+class AuctionApproveView(LoginRequiredMixin, LeagueManagerRequiredMixin, View):
+    template_path = "game/auction_room.html"
+
+    def post(self, request):
+        auction_bid = get_auction_bid()
+        if check_auction_finished():
+            context = {"success": False, "msg": "Auction finished!"}
+            return render(request, self.template_path, context=context)
+        if not auction_bid:
+            context = {"success": False, "msg": "Invalid auction bid!"}
+            return render(request, self.template_path, context=context)
+        success, msg = commit_auction_approve(auction_bid)
+        if msg:
+            request.session["auction_approve_msg"] = msg
+            request.session["auction_approve_success"] = success
+        return redirect(to=reverse_lazy("game:auction_room"))
+
+
+class AuctionCreateView(LoginRequiredMixin, LeagueManagerRequiredMixin, View):
+    template_path = "game/auction_room.html"
+
+    def post(self, request, pk):
+        player = Player.objects.filter(pk=pk).first()
+        success, msg = auction_bid_create_pre_validation(player)
+        if success:
+            commit_auction_create(player=player)
+        if msg:
+            request.session["auction_create_msg"] = msg
+            request.session["auction_create_success"] = success
+        return redirect(to=reverse_lazy("game:auction_list"))
+
+
+class AuctionFinishView(LoginRequiredMixin, LeagueManagerRequiredMixin, View):
+    
+    def post(self, request):
+        if check_auction_finished():
+            context = {"success": False, "msg": "Auction finished!"}
+            return render(request, self.template_path, context=context)
+        auction_bid = get_auction_bid()
+        if auction_bid:
+            success, msg = commit_auction_approve(auction_bid)
+        parameter = Parameters.objects.all().first()
+        parameter.is_auction_finished = True
+        parameter.save()
+        if msg:
+            request.session["auction_finish_msg"] = msg
+            request.session["auction_finish_success"] = success
+        for player in Player.objects.filter(~Q(bought=True)):
+            player.base_bid = player.now_cost
+            player.save()
+        return redirect(to=reverse_lazy("game:auction_room"))
+
+
 class CustomRedirectView(View):
     pass
+
+

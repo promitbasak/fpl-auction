@@ -1,6 +1,7 @@
 from django import template
+from django.db.models import Sum
 
-from game.validators import check_incoming_offers, check_unstable_squad
+from game.validators import check_incoming_offers, check_unstable_squad, check_auction_finished
 
 register = template.Library()
 
@@ -18,6 +19,17 @@ def manager_transfers(manager):
 @register.filter
 def subtract(value, arg):
     return value - arg
+
+
+@register.filter
+def is_auction_finished(value):
+    return check_auction_finished()
+
+
+@register.filter
+def team_value(manager):
+    return manager.player_set.all().aggregate(Sum("current_bid")).get("current_bid__sum")
+
     
 
 @register.simple_tag(takes_context=True)

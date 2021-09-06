@@ -1,0 +1,297 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Auction Room {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+
+#headshot {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+</style>
+
+{% endblock stylesheets %}
+
+{% load humanize %}
+{% load custom_filters %}
+
+{% block content %}
+
+<!-- ----------- Card --------------- -->
+
+{% if request.user.manager.is_league_manager %}
+<div class="row">
+
+  <div class="col-md-12 mx-auto">
+    <div class="card card-user">
+      {% if "func"|is_auction_finished %}
+      {% else %}
+      <div class="card-header">
+        <div class="row">
+          <div class="col-md-12"><h4 class="card-title"> Auction options</h4></div>
+          <h6 class="card-category text-center mx-auto">
+            {% if approval_msg %}
+                {% if approval_success %}
+                  <span class="text-success">{{ approval_msg | safe }}</span>
+                {% else %}
+                  <span class="text-danger">{{ approval_msg | safe }}</span>
+                {% endif %}
+            {% endif %}
+          </h6>
+          <h6 class="card-category text-center">
+            {% if finish_msg %}
+                {% if finish_success %}
+                  <span class="text-success">{{ finish_msg | safe }}</span>
+                {% else %}
+                  <span class="text-danger">{{ finish_msg | safe }}</span>
+                {% endif %}
+            {% endif %}
+          </h6>
+        </div>
+        <div class="row">
+          <div class="col-md-3 text-center"></div>
+        <div class="col-md-2 text-center">
+          <a target="_blank" href="{% url 'game:auction_list' %}" class="btn btn-primary">
+            Browse Players</a>
+        </div>
+        <div class="col-md-2 text-center">
+          <form role="form" method="post" action="approve/" class="mx-auto">
+            {% csrf_token %} 
+            <button type="submit" name="Create" 
+            class="btn btn-fill btn-success text-center">End This Bid</button>
+          </form>
+        </div>
+        <div class="col-md-2 text-center">
+          <form role="form" method="post" action="finish/" class="mx-auto">
+            {% csrf_token %} 
+            <button type="submit" name="Create" 
+            class="btn btn-fill btn-danger text-center">Finish Auction</button>
+          </form>
+        </div>
+        <div class="col-md-3 text-center"></div>
+        <div class="col-md-3 text-center"></div>
+      </div>
+      </div>
+      {% endif %}
+      </div>
+    </div>
+    </div>
+
+{% endif %}
+
+
+<div class="row">
+
+<div class="col-md-12 mx-auto">
+  <div class="card card-user">
+    {% if "func"|is_auction_finished %}
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-12"><h4 class="card-title"> Now bidding</h4>
+        <h4 class="text-center text-danger">Auction is finished</h4></div>
+      </div>
+    </div>
+    {% else %}
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-3"><h4 class="card-title"> Now bidding</h4></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <p class="card-text">
+        <div class="author">
+            {% if auction_bid %}
+            {% with player=auction_bid.player %}
+            <a href="javascript:void(0)">
+              <img class="avatar" id="headshot" alt="{{ player.name }}"
+                  src= "https://resources.premierleague.com/premierleague/photos/players/110x140/p{{ player.fpl_code }}.png">
+              <h5 class="title">
+                {{ player.first_name }} {{ player.second_name }}
+              </h5>
+            </a>
+            <div class="table-responsive">
+              <table class="table tablesorter " id="">
+                <tbody>
+                  <tr>
+                    <th class="text-center">
+                      Position
+                    </th>
+                    <th class="text-center">
+                      Team
+                    </th>
+                    <th class="text-center">
+                      Form
+                    </th>
+                  </tr>
+                  <tr>
+                    <td class="text-center">
+                      {{ player.element_type.position_verbose }}
+                    </td>
+                    <td class="text-center">
+                      {{ player.team.name }}
+                    </td>
+                    <td class="text-center">
+                      {{ player.form }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="text-center">
+                      Base Cost
+                    </th>
+                    <th class="text-center">
+                      Top Bid
+                    </th>
+                    <th class="text-center">
+                      Top Bidder
+                    </th>
+                  </tr>
+                  <tr>
+                    <td class="text-center">
+                      {{ auction_bid.base_bid }}
+                    </td>
+                    <td class="text-center">
+                      {{ auction_bid.highest_bid }}
+                    </td>
+                    <td class="text-center">
+                      {{ auction_bid.highest_bidder.name }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+
+            {% endwith %}
+            {% else %}
+            <h4 class="title">
+              No player is raised in auction, wait a few moments...
+            </h5>
+            {% endif %}
+        </div>
+      </p>
+    <div class="row mx-auto text-center">
+      <h6 class="card-category mx-auto text-center">
+        {% if msg %}
+            {% if success %}
+              <span class="text-success">{{ msg | safe }}</span>
+            {% else %}
+              <span class="text-danger">{{ msg | safe }}</span>
+            {% endif %}
+        {% endif %}
+      </h6>
+    </div>
+    <div class="row mx-auto text-center">
+        <div class="button-container mx-auto text-center">
+          {% if auction_bid %}
+          {% if form %}
+          <form role="form" method="post" action="" class="mx-auto">
+          {% csrf_token %} 
+                <div class="row">
+                  <div class="col-md-12 px-md-1 mx-auto">
+                    <div class="form-group mx-auto">
+                      <label>Your Bid</label>
+                      {{ form.bid }}
+                    </div>
+                    <input type="hidden" name="auction_bid_id" value="{{ auction_bid.id }}">
+                  </div>
+                </div>
+
+          <div class="card-footer mx-auto text-center">
+            <h5 class="card-category mx-auto">
+              <span>Your total bid: <span class="text-primary"><b>{{ request.user.manager.total_bid }}</b></span> | 
+                total balance: 
+                <span class="text-primary"><b>{{ manager_max_balance|subtract:request.user.manager.total_bid }}</b></span> 
+              | Players bought: 
+              <span class="text-primary"><b>{{ request.user.manager.player_set.count }}</b></span> </span>
+            </h5>
+            <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Bid</button>
+            <a href="{% url 'game:auction_room' %}" class="btn btn-success btn-fill">Refresh</a>
+          </div>
+        </form>
+        {% endif %}
+        {% endif %}
+        </div>
+      </div>
+    </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ------------ Sold ------------ -->
+
+
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card ">
+      <div class="card-header">
+        <h4 class="card-title"> Sold Players</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table tablesorter " id="">
+            <thead class=" text-primary">
+              <tr>
+                <th class="text-center">
+                  Player
+                </th>
+                <th class="text-center">
+                  Position
+                </th>
+                <th class="text-center">
+                  Team
+                </th>
+                <th class="text-center">
+                  Bid Price
+                </th>
+                <th class="text-center">
+                  Manager
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for bid in sold_bids %}
+                  <tr>
+                    <td class="text-center">
+                      {{ bid.player.first_name }} {{ bid.player.second_name }}
+                    </td>
+                    <td class="text-center">
+                      {{ bid.player.element_type.position_verbose }}
+                    </td>
+                    <td class="text-center">
+                      {{ bid.player.team.name }}
+                    </td>
+                    <td class="text-center">
+                      {{ bid.highest_bid }}
+                    </td>
+                    <td class="text-center">
+                      {% if not bid.highest_bidder %}
+                        
+                      {% else %}
+                          <a href="{% url 'game:manager_detail' bid.highest_bidder.id %}"> 
+                            {{ bid.highest_bidder.name}} </a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -10,7 +10,15 @@ squad_rules = {
     "GKP_max": 1 
 }
 
-manager_max_balance = 100.0
+manager_max_balance = 105.0
+max_bid = 15.0
+
+player_buy_penalty = 3.0
+player_sell_penalty = 2.0
+player_offer_buy_penalty = 2.0
+player_offer_sell_penalty = 1.0
+
+player_sell_cost_decrease = 0.2
 
 min_benched_player = 4
 

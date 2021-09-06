@@ -3,19 +3,27 @@
 {% block title %} Register {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .errorlist li
+    {
+        color: var(--danger);
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 
         <div class="row">
           <div class="col-md-8">
-            <div class="card">
+            <div class="card mx-auto text-center">
 
               <form role="form" method="post" action="">
               
                 {% csrf_token %} 
 
-                <div class="card-header">
+                <div class="card-header mx-auto text-center">
                   <h5 class="title">Register</h5>
 
                   <h6 class="card-category">
@@ -38,50 +46,49 @@
                 <div class="card-body">
 
                     <div class="row">
-                      <div class="col-md-3 px-md-1">
-                        <div class="form-group">
+                      <div class="col-md-4 px-md-1 mx-auto">
+                        <div class="form-group text-left">
                           <label>Username</label>
                           {{ form.username }}
                         </div>
                       </div>
                     </div>
-                    <span class="text-danger">{{ form.username.errors }}</span>
+                    <span>{{ form.username.errors }}</span>
 
                     <div class="row">
-                      <div class="col-md-3 px-md-1">
-                        <div class="form-group">
+                      <div class="col-md-4 px-md-1 mx-auto">
+                        <div class="form-group text-left">
                           <label>Email</label>
                           {{ form.email }}
                         </div>
                       </div>
                     </div>
-                    <span class="text-danger">{{ form.email.errors }}</span>
+                    <span>{{ form.email.errors }}</span>
 
                     <div class="row">
-                      <div class="col-md-3 px-md-1">
-                        <div class="form-group">
+                      <div class="col-md-4 px-md-1 mx-auto">
+                        <div class="form-group text-left">
                           <label>Password</label>
                           {{ form.password1 }}
                         </div>
                       </div>
                     </div>
-                    <span class="text-danger">{{ form.password1.errors }}</span>
+                    <span>{{ form.password1.errors }}</span>
                     
                     <div class="row">
-                        <div class="col-md-3 px-md-1">
-                            <div class="form-group">
+                        <div class="col-md-4 px-md-1 mx-auto">
+                            <div class="form-group text-left">
                             <label>Password Check</label>
                             {{ form.password2 }}
                             </div>
                         </div>
                     </div>
-                    <span class="text-danger">{{ form.password2.errors }}</span>
+                    <span>{{ form.password2.errors }}</span>
 
                 </div>
                 <div class="card-footer">
                   <button type="submit" name="register" class="btn btn-fill btn-primary">Register</button>
-                  &nbsp; &nbsp;
-                  Have an account? <a href="{% url 'accounts:login' %}" class="text-primary">Login</a>
+                  <p>Have an account? <a href="{% url 'accounts:login' %}" class="text-primary">Login</a></p>
                 </div>
 
               {% endif %} 

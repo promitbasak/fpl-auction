@@ -5,12 +5,12 @@ from game.models import PlayerType, PlayerStatus, Player, Team, Parameters, Dead
 
 def run():
     status_map = {
-        "n": "not_available",
-        "d": "illness",
-        "a": "active",
-        "s": "suspended",
-        "u": "not_in_league",
-        "i": "injured"
+        "n": "Not available",
+        "d": "Unwell",
+        "a": "Active",
+        "s": "Suspended",
+        "u": "Not in league",
+        "i": "Injured"
     }
 
     if Player.objects.count() > 0:
@@ -86,4 +86,4 @@ def run():
         player.save()
 
 
-    Parameters.objects.create(current_gameweek=1)
+    Parameters.objects.create(current_gameweek=1, is_auction_finished=False)

@@ -1,8 +1,23 @@
 from types import SimpleNamespace
 import pytz
 
-from .models import Manager, Player, Parameters, TransferHistory, ManagerGameWeek, Deadlines, TransferOffer
-from .constants import squad_rules, min_benched_player
+from .models import ( AuctionBid, 
+                      Manager, 
+                      Player, 
+                      Parameters, 
+                      TransferHistory, 
+                      ManagerGameWeek, 
+                      Deadlines, 
+                      TransferOffer
+)   
+from .constants import (squad_rules,
+                        min_benched_player,
+                        player_buy_penalty,
+                        player_sell_penalty,
+                        player_offer_buy_penalty,
+                        player_offer_sell_penalty,
+                        player_sell_cost_decrease
+)                        
 from .validators import (
     offer_create_post_validator,
     squad_validation_mgw,
@@ -65,7 +80,7 @@ def add_random_benched_players_to_squad(mgw: ManagerGameWeek):
     return added
 
 
-def commit_player_buy(manager: Manager, player: Player, bid_value, trans_history=True):
+def commit_player_buy(manager: Manager, player: Player, bid_value, offer=False, auction=False):
     current_gameweek = Parameters.objects.all().first().current_gameweek
     try:
         mgw = ManagerGameWeek.objects.get(gw=current_gameweek, manager=manager)
@@ -90,13 +105,21 @@ def commit_player_buy(manager: Manager, player: Player, bid_value, trans_history
     mgw = ManagerGameWeek.objects.get(gw=current_gameweek, manager=manager)
     added = add_random_benched_players_to_squad(mgw)
 
-    if trans_history:
+    if offer:
+        manager.total_points -= player_offer_buy_penalty
+        manager.point_penalties += player_offer_buy_penalty
+        manager.save()
+    else:
         trans_hist = TransferHistory(player=player, to_manager=manager, bid=bid_value, type=1)
         trans_hist.save()
+        if not auction:
+            manager.total_points -= player_buy_penalty
+            manager.point_penalties += player_buy_penalty
+            manager.save()
     return True
 
 
-def commit_player_sell(manager: Manager, player: Player, bid_value, trans_history=True):
+def commit_player_sell(manager: Manager, player: Player, bid_value, offer=False, auction=False):
     current_gameweek = Parameters.objects.all().first().current_gameweek
     try:
         mgw = ManagerGameWeek.objects.get(gw=current_gameweek, manager=manager)
@@ -109,6 +132,9 @@ def commit_player_sell(manager: Manager, player: Player, bid_value, trans_histor
     player.base_bid = player.now_cost
     player.save()
 
+    if not offer:
+        bid_value -= player_sell_cost_decrease
+
     manager.total_bid = round(manager.total_bid - bid_value, 4)
     manager.save()
 
@@ -119,10 +145,18 @@ def commit_player_sell(manager: Manager, player: Player, bid_value, trans_histor
     mgw = ManagerGameWeek.objects.get(gw=current_gameweek, manager=manager)
     added = add_random_benched_players_to_squad(mgw)
 
-    if trans_history:
+
+    if offer:
+        manager.total_points -= player_offer_sell_penalty
+        manager.point_penalties += player_offer_sell_penalty
+        manager.save()
+    else:
         trans_hist = TransferHistory(player=player, from_manager=manager, bid=bid_value, type=2)
         trans_hist.save()
-
+        if not auction:
+            manager.total_points -= player_sell_penalty
+            manager.point_penalties += player_sell_penalty
+            manager.save()
     return added
 
 
@@ -159,8 +193,8 @@ def commit_offer_create(manager: Manager, to_manager: Manager, player: Player, b
 def commit_offer_accept(manager: Manager, offer: TransferOffer):
     virdict, message = offer_accept_validator(manager, offer)
     if virdict:
-        added = commit_player_sell(offer.to_manager, offer.player, offer.bid, trans_history=False)
-        commit_player_buy(offer.from_manager, offer.player, offer.bid, trans_history=False)
+        added = commit_player_sell(offer.to_manager, offer.player, offer.bid, offer=True)
+        commit_player_buy(offer.from_manager, offer.player, offer.bid, offer=True)
         TransferHistory.objects.create(player=offer.player, from_manager=offer.to_manager,
                                         to_manager=offer.from_manager, bid=offer.bid, type=3)
         TransferOffer.objects.filter(pk=offer.id).delete()
@@ -223,3 +257,44 @@ def add_warning_to_offers(queryset):
         virdicts.append(is_valid)
         warnings.append(warning_message)
     return warnings, virdicts
+
+
+def commit_auction_approve(auction_bid):
+    success, msg = False, None
+    manager = auction_bid.highest_bidder
+    highest_bid = auction_bid.highest_bid
+    player = auction_bid.player
+    if manager and highest_bid:
+        commit_player_buy(manager, player, highest_bid, auction=True)
+        auction_bid.is_sold = True
+        auction_bid.save()
+        success = True
+        msg = f"{manager.name} has bought {player.web_name} for " 
+        msg += f"{highest_bid}."
+    else:
+        msg = f"{player.web_name} was not sold"
+        AuctionBid.objects.filter(pk=auction_bid.id).delete()
+    return success, msg
+
+
+def commit_auction_bid(auction_bid, manager, bid_value):
+    auction_bid.highest_bid = bid_value
+    auction_bid.highest_bidder = manager
+    auction_bid.save()
+
+
+def get_auction_bid():
+    auction_bids = AuctionBid.objects.filter(is_sold=False).order_by("-time")
+    if len(auction_bids) < 1:
+        return None
+    elif len(auction_bids) > 1:
+        for auction_bid in auction_bids[2:]:
+            commit_auction_approve(auction_bid)
+    return auction_bids.first()
+
+
+def commit_auction_create(player):
+    if AuctionBid.objects.filter(player=player).count():
+        return False
+    AuctionBid.objects.create(player=player, base_bid=player.base_bid, is_sold=False, highest_bid=0)
+    return True

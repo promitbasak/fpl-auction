@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Buy {{player.web_name }} {% endblock %} 
+{% block title %} Offer {{player.web_name }} {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -25,7 +25,8 @@
                 {% csrf_token %} 
 
                 <div class="card-header">
-                  <h5 class="title">Create Offer - {{player.first_name}} {{player.last_name}}</h5>
+                  <h5 class="title">Create Offer {% if player %}- {{player.first_name}} {{player.last_name}}{% endif %}
+                  </h5>
 
                   <h6 class="card-category text-left">
                     {% if msg %}

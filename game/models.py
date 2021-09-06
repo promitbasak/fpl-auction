@@ -40,7 +40,9 @@ class Manager(models.Model):
     team_name = models.CharField(max_length=50)
     total_bid = models.FloatField(null=True, blank=True, default=0.0)
     total_points = models.FloatField(null=True, blank=True, default=0.0)
+    point_penalties = models.FloatField(null=True, blank=True, default=0.0)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    is_league_manager = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
         return f"{self.name}"
@@ -55,7 +57,7 @@ class Player(models.Model):
     web_name = models.CharField(max_length=25)
     photo = models.CharField(max_length=20, null=True, blank=True)
     now_cost = models.FloatField()
-    base_cost = models.FloatField()
+    base_cost = models.FloatField()     # Never use this
     minutes = models.FloatField()
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     status = models.ForeignKey(PlayerStatus, on_delete=models.SET_NULL, null=True, blank=True)
@@ -117,6 +119,18 @@ class ManagerGameWeek(models.Model):
         return f"{self.manager.name}_{self.gw}"
 
 
+class AuctionBid(models.Model):
+    player = models.OneToOneField(Player, on_delete=models.CASCADE)
+    base_bid = models.FloatField()
+    highest_bid = models.FloatField(blank=True, default=0)
+    highest_bidder = models.ForeignKey(Manager, on_delete=models.SET_NULL, null=True, blank=True)
+    is_sold = models.BooleanField(blank=True, default=False)
+    time = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.player.web_name}_{self.highest_bidder.name}_{self.highest_bid}"
+
+
 class TransferOffer(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     from_manager = models.ForeignKey(Manager, on_delete=models.CASCADE, null=True, blank=True, 
@@ -149,3 +163,4 @@ class Deadlines(models.Model):
 
 class Parameters(models.Model):
     current_gameweek = models.IntegerField()
+    is_auction_finished = models.BooleanField(blank=True, default=False)

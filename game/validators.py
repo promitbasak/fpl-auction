@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import reverse_lazy
 
-from .models import Deadlines, Manager, ManagerGameWeek, Player, Parameters, PlayerType, TransferOffer
-from .constants import squad_rules, manager_max_balance, min_benched_player
+from .models import AuctionBid, Deadlines, Manager, ManagerGameWeek, Player, Parameters, PlayerType, TransferOffer
+from .constants import squad_rules, manager_max_balance, min_benched_player, max_bid
 
 
 pos_trans = {
@@ -11,6 +11,11 @@ pos_trans = {
     "MID": "midfielder",
     "GKP": "goalkeeper"
 }
+
+
+def check_auction_finished():
+    parameter = Parameters.objects.all().first()
+    return parameter.is_auction_finished
 
 
 def check_deadline():
@@ -204,7 +209,7 @@ def check_incoming_offers(manager: Manager):
     return virdict
 
 
-def player_buy_pre_validation(manager, player, offer=False):
+def player_buy_pre_validation(manager, player, offer=False, auction=False):
     message = None
     virdict = False
     if not manager:
@@ -212,6 +217,8 @@ def player_buy_pre_validation(manager, player, offer=False):
         message = f"You cannot offer this player."
     elif not player:
         message = "Player does not exist!"
+    elif not auction and not check_auction_finished():
+        message = f"Auction not finished yet, please check back after the auction is over!"
     elif check_deadline():
         message = f"Transfer deadline is over, please check back later."
     elif player.bought and player.bought_by == manager:
@@ -226,7 +233,8 @@ def player_buy_pre_validation(manager, player, offer=False):
     return virdict, message
 
 
-def player_buy_post_validation(manager, player, bid_value, pre_validation=True, offer=False):
+def player_buy_post_validation(manager, player, bid_value, pre_validation=True, offer=False, auction=False,
+                                top_bid=0):
     try:
         bid_value = float(bid_value)
     except:
@@ -234,13 +242,19 @@ def player_buy_post_validation(manager, player, bid_value, pre_validation=True, 
         virdict = False
         return virdict, message, None
     if pre_validation:
-        virdict, message = player_buy_pre_validation(manager, player, offer=offer)
+        virdict, message = player_buy_pre_validation(manager, player, offer=offer, auction=auction)
     else:
         virdict = True
     if virdict:
         if not offer and player.base_bid > bid_value:
             virdict = False
             message = "Bid cannot be less than the base value!"
+        elif auction and (bid_value - top_bid) > 0.1 and bid_value > max_bid:
+            virdict = False
+            message = f"Max bid can be {max_bid}."
+        elif not auction and bid_value > max_bid:
+            virdict = False
+            message = f"Max bid can be {max_bid}."
         elif not balance_validation(manager, bid_value):
             virdict = False
             message = f"You do not have sufficient balance."
@@ -251,7 +265,7 @@ def player_buy_post_validation(manager, player, bid_value, pre_validation=True, 
         
     
 
-def player_sell_pre_validation(manager, player):
+def player_sell_pre_validation(manager, player, auction=False):
     message, warning = None, None
     virdict = False
     if not manager:
@@ -259,6 +273,8 @@ def player_sell_pre_validation(manager, player):
         message = f"You cannot offer this player."
     elif not player:
         message = "Player does not exist!"
+    elif not auction and not check_auction_finished():
+        message = f"Auction not finished yet, please check back after the auction is over!"
     elif check_deadline():
         message = f"Transfer deadline is over, please check back later."
     elif player.bought and player.bought_by == manager:
@@ -347,3 +363,37 @@ def offer_delete_validator(manager, offer):
         message = None
     return virdict, message
 
+
+def auction_bid_create_pre_validation(player):
+    success, message, not_exist_warning = False, None, False
+    if check_auction_finished():
+        message = "Auction finished!"
+    elif not player:
+        message = "Player does not exist"
+    elif AuctionBid.objects.filter(is_sold=False).count():
+        message = "Another auction is running"
+    else:
+        success = True
+        message = "Auction bid created"
+    return success, message        
+
+
+def auction_player_bid_pre_validation(auction_bid, bid_value):
+    virdict, message = False, None
+    try:
+        bid_value = float(bid_value)
+    except:
+        bid_value = None
+    if not bid_value:
+        message = "Invalid bid value"
+    elif check_auction_finished():
+        message = "Auction is finished"
+    elif not auction_bid or auction_bid.is_sold:
+        message = "Auction bid not valid"
+    elif auction_bid.highest_bid >= bid_value:
+        print(auction_bid.highest_bid, bid_value)
+        message = "Your bid value must be greater than highest bid"
+    else:
+        virdict = True
+        message = "Bid raised successfully"
+    return virdict, message, bid_value

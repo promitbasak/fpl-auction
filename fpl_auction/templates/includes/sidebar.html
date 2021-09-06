@@ -6,46 +6,58 @@
         <div class="logo">
         </div>
 
+        {% with segment=request.path %}
         <ul class="nav">
         {% if request.user.is_authenticated %}
-        
-          <li class="{% if 'index' in segment %} active {% endif %} ">
+          <!-- <li class="{% if 'index' in segment %} active {% endif %} ">
             <a href="{% url 'home:index' %}">
               <i class="tim-icons icon-bank"></i>
               <p>Home</p>
             </a>
-          </li>
-          <li class="{% if 'index' in segment %} active {% endif %} ">
+          </li> -->
+          <li class="{% if 'profile' in segment %} active {% endif %} ">
             <a href="{% url 'home:profile' %}">
               <i class="tim-icons icon-chart-pie-36"></i>
               <p>Dashboard</p>
             </a>
           </li>
-          <li class="{% if 'index' in segment %} active {% endif %} ">
+          <li class="{% if 'manage_team' in segment %} active {% endif %} ">
             <a href="{% url 'game:manage_team' %}">
               <i class="fas fa-users"></i>
               <p>Manage Team</p>
             </a>
           </li>
-          <li class="{% if 'index' in segment %} active {% endif %} ">
+          <li class="{% if 'offers' in segment %} active {% endif %} ">
             <a href="{% url 'game:offer_list' %}">
               <i class="fas fa-exchange-alt"></i>
               <p>Offers</p>
             </a>
           </li>
-          <li class="{% if 'icons' in segment %} active {% endif %}">
+          <li class="{% if 'players' in segment %} active {% endif %}">
             <a href="{% url 'game:player_list' %}">
               <i class="tim-icons icon-user-run"></i>
               <p>Players</p>
             </a>
           </li>
-          <li class="{% if 'maps' in segment %} active {% endif %}">
+          <li class="{% if 'managers' in segment %} active {% endif %}">
             <a href="{% url 'game:manager_list' %}">
               <i class="tim-icons icon-single-02"></i>
               <p>Managers</p>
             </a>
           </li>
-          <li>
+          <li class="{% if 'auction' in segment %} active {% endif %}">
+            <a href="{% url 'game:auction_room' %}">
+              <i class="fas fa-dollar-sign"></i>
+              <p>Auction Room</p>
+            </a>
+          </li>
+          <li class="{% if 'rules' in segment %} active {% endif %}">
+            <a href="{% url 'home:rules' %}">
+              <i class="far fa-question-circle"></i>
+              <p>Rules</p>
+            </a>
+          </li>
+          <li class="{% if 'transfer_history' in segment %} active {% endif %}">
             <a href="{% url 'game:transfer_history' %}" >
               <i class="far fa-clock"></i>
               <p>Transfer History</p>
@@ -58,13 +70,13 @@
             </a>
           </li>
           {% else %}
-          <li class="active">
+          <li class="{% if 'login' in segment %} active {% endif %}">
             <a 
              href="{% url 'accounts:login' %}" class="simple-text logo-mini">
              Log in
             </a>
           </li>
-          <li>
+          <li class="{% if 'register' in segment %} active {% endif %}">
             <a 
              href="{% url 'accounts:register' %}" class="simple-text logo-mini">
              Sign Up
@@ -73,6 +85,7 @@
           {% endif %}
                     
         </ul>
+        {% endwith %}
         
       </div>
     </div>

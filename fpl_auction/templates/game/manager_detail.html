@@ -1,61 +1,93 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %} Manager Profile {% endblock %} 
+{% block title %} Manager {%if manager %}- {{ manager.name }} {% endif %} {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  p.description {
+    font-size: 1em;
+  }
+</style>
+{% endblock stylesheets %}
+
+{% load static %}
 {% load custom_filters %}
 {% load humanize %}
 
 {% block content %}
 
+<!-- ----- Card ------- -->
+
+
 <div class="row">
-    <div class="col-md-12">
-      <div class="card ">
-        <div class="card-header">
-          <h4 class="card-title"> Manager</h4>
+  <div class="col-md-3"></div>
+  <div class="col-md-6">
+    <div class="card card-user">
+      <div class="card-body">
+        <p class="card-text">
+          <div class="author">
+            <div class="block block-one"></div>
+            <div class="block block-two"></div>
+            <div class="block block-three"></div>
+            <div class="block block-four"></div>
+            <a href="javascript:void(0)">
+              <img class="avatar" src="{% static 'assets/img/anime3.png' %}" alt="{{ request.user.username }}">
+              <h4 class="title">
+                <span class="">{{ manager.name }}</span>
+              </h4>
+            </a>
+            <p class="description">
+              Team: <span class="text-primary"><b>{{ manager.team_name }}</b></span>
+            </p>
+            <p class="description">
+              Total Points: <span class="text-primary"><b>{{ manager.total_points }}</b></span>
+            </p>
+            <p class="description">
+              Total Bid: <span class="text-primary"><b>{{ manager.total_bid }}</b></span>
+            </p>
+            <p class="description">
+              Balance: <span class="text-primary"><b>{{ manager_max_balance|subtract:manager.total_bid }}</b></span>
+            </p>
+            <p class="description">
+              Team Value: <span class="text-primary"><b> {{ manager|team_value }}</b></span>
+            </p>
+            <p class="description">
+              Point penalty: <span class="text-primary"><b>{{ manager.point_penalties }}</b></span>
+            </p>
+          </div>
+        </p>
+        {% if manager.user.about_me %}
+        <div class="card-description">
+          {{ manager.user.about_me }}
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table tablesorter " id="">
-              <thead class=" text-primary">
-                <tr>
-                  <th class="text-center">
-                    Name
-                  </th>
-                  <th class="text-center">
-                    Team Name
-                  </th>
-                  <th class="text-center">
-                    Total Bid
-                  </th>
-                  <th class="text-center">
-                    Total Points
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="text-center">
-                    {{ manager.name}}
-                  </td>
-                  <td class="text-center">
-                    {{ manager.team_name }}
-                  </td>
-                  <td class="text-center">
-                    {{ manager.total_bid }}
-                  </td>
-                  <td class="text-center">
-                    {{ manager.total_points }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        {% with user=manager.user %}
+        <div class="row mx-auto text-center">
+          <div class="button-container mx-auto text-center">
+              <a href="{% if user.facebook_link %}{{ user.facebook_link }}{% else %}javascript:void(0){% endif %}",
+               style="color: #ffffff;" target="{% if user.facebook_link %}_blank{% endif %}">
+               <button href="javascript:void(0)" class="btn btn-icon btn-round btn-facebook">
+                <i class="fab fa-facebook"></i></button></a>
+              <a href="{% if user.fpl_id %}https://fantasy.premierleague.com/entry/{{ user.fpl_id }}/event/1{% else %}javascript:void(0){% endif %}",
+                style="color: #ffffff;" target="{% if user.fpl_id %}_blank{% endif %}">
+                <button href="javascript:void(0)" class="btn btn-icon btn-round btn-twitter">
+                <i class="tim-icons icon-trophy"></i></button>
+              </a>
+              <a href="{% if user.linkedin_link %}{{ user.linkedin_link }}{% else %}javascript:void(0){% endif %}", 
+                  style="color: #ffffff;" target="{% if user.linkedin_link %}_blank{% endif %}">
+                  <button href="javascript:void(0)" class="btn btn-icon btn-round btn-google">
+                  <i class="fab fa-linkedin"></i></button></a>
           </div>
         </div>
+        {% endwith %}
       </div>
     </div>
+  </div>
 </div>
+
 
 
 <!-- ------------ Players ------------ -->
@@ -269,6 +301,7 @@
       </div>
     </div>
   </div>
+  <div class="col-md-3"></div>
 </div>
 
 

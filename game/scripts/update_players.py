@@ -2,6 +2,7 @@ import requests, json
 from tqdm import tqdm
 
 from game.models import PlayerType, PlayerStatus, Player, Team, Parameters, PlayerGameWeek
+from game.validators import check_auction_finished
 
 def run():
     status_map = {
@@ -50,12 +51,19 @@ def run():
                                                         status_verbose=status_map[player_dict["status"]])
         player_dict["now_cost"] = player_dict["now_cost"]/10
         player_counts = Player.objects.filter(fpl_id=player_dict["fpl_id"]).count()
-        player_dict["base_bid"] = player_dict["now_cost"]
         if player_counts:
+            if check_auction_finished():
+                player_dict["base_bid"] = player_dict["now_cost"]
+            else:
+                player_dict["base_bid"] = player_dict["base_cost"]-1
             Player.objects.filter(fpl_id=player_dict["fpl_id"]).update(**player_dict)
         else:
             player_dict["total_points"] = 0
             player_dict["base_cost"] = round(player_dict["now_cost"]*2)/2
+            if check_auction_finished():
+                player_dict["base_bid"] = player_dict["now_cost"]
+            else:
+                player_dict["base_bid"] = player_dict["base_cost"]-1
             player_dict["bought"] = False
             player = Player.objects.create(**player_dict)
             player.save()
