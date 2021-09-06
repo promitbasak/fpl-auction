@@ -106,15 +106,15 @@ def commit_player_buy(manager: Manager, player: Player, bid_value, offer=False, 
     added = add_random_benched_players_to_squad(mgw)
 
     if offer:
-        manager.total_points -= player_offer_buy_penalty
-        manager.point_penalties += player_offer_buy_penalty
+        manager.total_points = round(manager.total_points - player_offer_buy_penalty, 4)
+        manager.point_penalties = round(manager.point_penalties + player_offer_buy_penalty, 4) 
         manager.save()
     else:
         trans_hist = TransferHistory(player=player, to_manager=manager, bid=bid_value, type=1)
         trans_hist.save()
         if not auction:
-            manager.total_points -= player_buy_penalty
-            manager.point_penalties += player_buy_penalty
+            manager.total_points = round(manager.total_points - player_buy_penalty, 4)
+            manager.point_penalties = round(manager.point_penalties + player_buy_penalty, 4)
             manager.save()
     return True
 
@@ -133,7 +133,7 @@ def commit_player_sell(manager: Manager, player: Player, bid_value, offer=False,
     player.save()
 
     if not offer:
-        bid_value -= player_sell_cost_decrease
+        bid_value = round(bid_value - player_sell_cost_decrease, 4)
 
     manager.total_bid = round(manager.total_bid - bid_value, 4)
     manager.save()
@@ -147,15 +147,15 @@ def commit_player_sell(manager: Manager, player: Player, bid_value, offer=False,
 
 
     if offer:
-        manager.total_points -= player_offer_sell_penalty
-        manager.point_penalties += player_offer_sell_penalty
+        manager.total_points = round(manager.total_points - player_offer_sell_penalty, 4)
+        manager.point_penalties = round(manager.point_penalties + player_offer_sell_penalty, 4)
         manager.save()
     else:
         trans_hist = TransferHistory(player=player, from_manager=manager, bid=bid_value, type=2)
         trans_hist.save()
         if not auction:
-            manager.total_points -= player_sell_penalty
-            manager.point_penalties += player_sell_penalty
+            manager.total_points = round(manager.total_points - player_sell_penalty, 4)
+            manager.point_penalties = round(manager.point_penalties + player_sell_penalty, 4)
             manager.save()
     return added
 

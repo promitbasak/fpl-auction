@@ -47,10 +47,14 @@
               Total Bid: <span class="text-primary"><b>{{ manager.total_bid }}</b></span>
             </p>
             <p class="description">
-              Balance: <span class="text-primary"><b>{{ manager_max_balance|subtract:manager.total_bid }}</b></span>
+              {% with balance=manager_max_balance|subtract:manager.total_bid %}
+              Balance: <span class="text-primary"><b>{{ balance|floatformat:1 }}</b></span>
+              {% endwith %}
             </p>
             <p class="description">
-              Team Value: <span class="text-primary"><b> {{ manager|team_value }}</b></span>
+              {% with squad_value=manager|team_value %}
+              Team Value: <span class="text-primary"><b> {{ squad_value|floatformat:1 }}</b></span>
+              {% endwith %}
             </p>
             <p class="description">
               Point penalty: <span class="text-primary"><b>{{ manager.point_penalties }}</b></span>

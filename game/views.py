@@ -479,6 +479,7 @@ class AuctionCreateView(LoginRequiredMixin, LeagueManagerRequiredMixin, View):
 class AuctionFinishView(LoginRequiredMixin, LeagueManagerRequiredMixin, View):
     
     def post(self, request):
+        success, msg = False, None
         if check_auction_finished():
             context = {"success": False, "msg": "Auction finished!"}
             return render(request, self.template_path, context=context)

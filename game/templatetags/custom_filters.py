@@ -28,7 +28,7 @@ def is_auction_finished(value):
 
 @register.filter
 def team_value(manager):
-    return manager.player_set.all().aggregate(Sum("current_bid")).get("current_bid__sum")
+    return round(manager.player_set.all().aggregate(Sum("current_bid")).get("current_bid__sum"), 4)
 
     
 
