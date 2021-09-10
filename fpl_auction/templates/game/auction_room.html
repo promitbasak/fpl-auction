@@ -201,10 +201,12 @@
 
           <div class="card-footer mx-auto text-center">
             <h5 class="card-category mx-auto">
-              <span>Your total bid: <span class="text-primary"><b>{{ request.user.manager.total_bid }}</b></span> | 
-                total balance: 
-                <span class="text-primary"><b>{{ manager_max_balance|subtract:request.user.manager.total_bid }}</b></span> 
-              | Players bought: 
+              <span>Your total bid: <span class="text-primary">
+                  <b>{{ request.user.manager.total_bid|floatformat:1 }}</b></span> | 
+                Total balance: 
+                {% with total_balance=manager_max_balance|subtract:request.user.manager.total_bid %}
+                <span class="text-primary"><b>{{ total_balance|floatformat:1 }}</b></span> 
+                | Players bought: 
               <span class="text-primary"><b>{{ request.user.manager.player_set.count }}</b></span> </span>
             </h5>
             <button type="submit" name="Create" class="btn btn-fill btn-primary text-center">Bid</button>
