@@ -19,9 +19,11 @@ from django.views.generic.base import RedirectView
 
 app_name = "main"
 
+handler404 = 'home.views.http_404_view'
+
 urlpatterns = [
     path("accounts/", include("authentication.urls")),
     path("", include("home.urls")),
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     path('game/', include("game.urls"), name="game"),
 ]

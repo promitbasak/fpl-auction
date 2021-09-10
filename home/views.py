@@ -95,3 +95,7 @@ class ProfileView(LoginRequiredMixin, View):
                       "manager_form": manager_form, "manager_success": manager_success,
                        "manager_msg": manager_msg}
                      )
+
+
+def http_404_view(request, exception):
+        return render(request,'home/404.html')
