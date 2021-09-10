@@ -206,6 +206,7 @@
                 Total balance: 
                 {% with total_balance=manager_max_balance|subtract:request.user.manager.total_bid %}
                 <span class="text-primary"><b>{{ total_balance|floatformat:1 }}</b></span> 
+                {% endwith %}
                 | Players bought: 
               <span class="text-primary"><b>{{ request.user.manager.player_set.count }}</b></span> </span>
             </h5>
