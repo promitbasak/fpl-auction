@@ -1,7 +1,7 @@
 # FPL Auction mode
 
 ## Description
-This is an auction mode for the renowned [Fantasy Premier League](https://fantasy.premierleague.com/). In this mode, you are a manager of your team and can buy players in an auction with your friends. Your points will be calculated from the actual Premier League games. For example, if your player do well in actual games, you will get more points. Then, after a gameweek ends, you can buy/sell players from other managers as well as from the auction. Most of the FPL rules are applicable in this mode.
+This is an auction mode for the renowned [Fantasy Premier League](https://fantasy.premierleague.com/) made with django. In this mode, you are a manager of your team and can buy players in an auction with your friends. Your points will be calculated from the actual Premier League games. For example, if your player do well in actual games, you will get more points. Then, after a gameweek ends, you can buy/sell players from other managers as well as from the auction. Most of the FPL rules are applicable in this mode.
 
 ` `  
 ` `  
